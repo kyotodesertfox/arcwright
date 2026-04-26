@@ -7,14 +7,18 @@ const ContactPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false); // New state for UI feedback
     const [workOrder, setWorkOrder] = useState({
         clientName: '',
+        clientNumber: '',
         clientEmail: '',
         projectDescription: ''
     });
 
     const isOrderValid =
     workOrder.clientName.trim() !== '' &&
+    workOrder.clientNumber.trim() !== '' &&
     workOrder.clientEmail.includes('@') &&
-    workOrder.projectDescription.length > 10;
+    workOrder.projectDescription.length > 10
+    // && blueprintFiles !== null; // Optional: Only if files are mandatory
+    ;
 
     // Helper to encode form data for Netlify
     const encode = (data) => {
@@ -27,23 +31,38 @@ const ContactPage = () => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        const formBody = {
-            "form-name": "project-intake",
-            ...workOrder,
-            "blueprints": blueprintFiles // The file object
-        };
+        const body = new FormData();
+
+        body.append("form-name", "project-intake");
+
+        body.append("clientName", workOrder.clientName);
+        body.append("clientNumber", workOrder.clientNumber);
+        body.append("clientEmail", workOrder.clientEmail);
+        body.append("projectDescription", workOrder.projectDescription);
+
+        if (blueprintFiles) {
+            body.append("blueprints", blueprintFiles);
+        }
 
         fetch("/", {
             method: "POST",
-            body: encode(formBody),
+            body: body,
         })
-        .then(() => {
-            alert("Work Order Received. We'll be in touch.");
-            setIsSubmitting(false);
-            // Optionally reset form here
+        .then((response) => {
+            if (response.ok) {
+                alert("Work Order Transmitted Successfully.");
+                setWorkOrder({ clientName: '', clientEmail: '', projectDescription: '' });
+                setBlueprintFiles(null);
+                setCurrentStage('contact');
+            } else {
+                throw new Error("Transmission Failed");
+            }
         })
         .catch((error) => {
-            console.error("Submission Error:", error);
+            console.error("Post Error:", error);
+            alert("Critical Failure: Could not transmit work order.");
+        })
+        .finally(() => {
             setIsSubmitting(false);
         });
     };
@@ -108,6 +127,20 @@ const ContactPage = () => {
             required
             />
             </div>
+
+            <div>
+            <label className="block text-xs uppercase font-black text-zinc-500 mb-2">Phone Number</label>
+            <input
+            type="text"
+            name="clientNumber"
+            value={workOrder.clientNumber}
+            onChange={(e) => setWorkOrder({...workOrder, clientNumber: e.target.value})}
+            className="w-full bg-black border border-zinc-800 p-4 outline-none focus:border-weld-red transition-colors"
+            placeholder="Enter phone number"
+            required
+            />
+            </div>
+
             <div>
             <label className="block text-xs uppercase font-black text-zinc-500 mb-2">Email Address</label>
             <input
@@ -138,9 +171,19 @@ const ContactPage = () => {
             <input
             type="file"
             name="blueprints"
-            onChange={(e) => setBlueprintFiles(e.target.files[0])}
+            onChange={(e) => {
+                if (e.target.files[0]) {
+                    setBlueprintFiles(e.target.files[0]);
+                }
+            }}
             className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-black file:bg-white file:text-black hover:file:bg-zinc-200 cursor-pointer"
             />
+
+            {blueprintFiles && (
+                <p className="mt-2 text-weld-red font-bold uppercase text-xs">
+                Attached: {blueprintFiles.name}
+                </p>
+            )}
             </div>
             <button
             type="button"
