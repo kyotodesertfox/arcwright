@@ -23,7 +23,7 @@ const Navbar = () => {
         {/* 1. Text First */}
         <span>ARC<span className="text-weld-red">WRIGHT</span></span><span className="text-white"> WELDING</span>
 
-        {/* 2. Image Second - Now riding the bottom border */}
+        {/* 2. Image Second - Now riding the bottom border
         <img
         src={LogoIcon}cd
         alt="Arcwright Logo"
@@ -40,7 +40,7 @@ const Navbar = () => {
         transition-all
         duration-300
         "
-        />
+        />*/}
 
         </Link>
 
