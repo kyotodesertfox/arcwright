@@ -51,7 +51,7 @@ const Portfolio = () => {
         className="mb-16 border-l-8 border-weld-red pl-8"
         >
         <h2 className="text-6xl font-black uppercase italic text-white tracking-tighter">
-        ARCWRIGHT <span className="text-weld-silver text-4xl block sm:inline">Portfolio</span>
+        ARC<span className="text-weld-red">WRIGHT</span> <span className="text-weld-silver text-4xl block sm:inline">Portfolio</span>
         </h2>
         <p className="text-zinc-500 uppercase tracking-widest text-sm mt-2">
         Jacksonville, FL // ArcWright Standards
