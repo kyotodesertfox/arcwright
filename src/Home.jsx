@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Home = () => {
     return (
         <section className="py-20 px-6">
@@ -17,9 +19,11 @@ const Home = () => {
         </div>
 
         <div className="mt-10">
+        <Link to="/contact">
         <button className="bg-weld-red hover:bg-red-700 text-white font-bold py-4 px-8 uppercase tracking-widest transition-all">
         Discuss Your Project
         </button>
+        </Link>
         </div>
 
         </div>
