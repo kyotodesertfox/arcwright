@@ -54,7 +54,7 @@ const Portfolio = () => {
         ARCWRIGHT <span className="text-weld-silver text-4xl block sm:inline">Portfolio</span>
         </h2>
         <p className="text-zinc-500 uppercase tracking-widest text-sm mt-2">
-        Jacksonville, FL // Arcright Standards
+        Jacksonville, FL // ArcWright Standards
         </p>
         </motion.div>
 

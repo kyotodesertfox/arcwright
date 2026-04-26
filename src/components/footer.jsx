@@ -16,14 +16,15 @@ const Footer = () => {
         Built for Durability
         </p>
 
-        {/* 🛠️ The Absolute Logo Overlay */}
+        {/* 🛠️ The Absolute Logo Overlay
         <div className="absolute top-0 right-6 md:right-12 -translate-y-1/2 z-10">
         <img
         src={LogoIcon}
         alt=""
         className="w-24 h-24 md:w-48 md:h-48 brightness-150 pointer-events-none"
         />
-        </div>
+        </div>*/}
+
         </div>
 
         </footer>
