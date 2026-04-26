@@ -21,9 +21,9 @@ const Navbar = () => {
         <Link to="/" className="relative flex items-center gap-3 text-2xl font-black italic tracking-tighter text-white group py-2">
 
         {/* 1. Text First */}
-        <span>ARC<span className="text-weld-red">WRIGHT</span></span>
+        <span>ARC<span className="text-weld-red">WRIGHT</span></span><span className="text-white"> WELDING</span>
 
-        {/* 2. Image Second - Now riding the bottom border
+        {/* 2. Image Second - Now riding the bottom border */}
         <img
         src={LogoIcon}cd
         alt="Arcwright Logo"
@@ -32,16 +32,16 @@ const Navbar = () => {
         -right-25
         -bottom-[1px]
         translate-y-2/3
-        h-25
+        h-30
         w-auto
         z-20
-        drop-shadow-[0_0_5px_rgba(255,0,0,1)]
+        drop-shadow-[0_0_5px_rgba(255,255,255,1)]
         group-hover:translate-x-1
         transition-all
         duration-300
         "
         />
-        */}
+
         </Link>
 
         {/* Desktop Links */}
