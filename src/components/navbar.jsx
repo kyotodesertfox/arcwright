@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import LogoIcon from '../assets/logo.svg';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -17,8 +18,18 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
 
         {/* Logo */}
-        <Link to="/" className="text-2xl font-black italic tracking-tighter text-white">
+        <Link to="/" className="flex items-center gap-3 text-2xl font-black italic tracking-tighter text-white group">
+        {/* 1. Text First */}
+        <span>
         ARC<span className="text-weld-red">WRIGHT</span>
+        </span>
+
+        {/* 2. Image Second (The Right Side) */}
+        <img
+        src={LogoIcon}
+        alt="Arcwright Logo"
+        className="h-[1.1em] w-auto brightness-100 group-hover:translate-x-1 transition-transform duration-300"
+        />
         </Link>
 
         {/* Desktop Links */}
