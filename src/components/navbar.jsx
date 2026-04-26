@@ -18,7 +18,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="text-2xl font-black italic tracking-tighter text-white">
-        ARC<span className="text-weld-red">RIGHT</span>
+        ARC<span className="text-weld-red">WRIGHT</span>
         </Link>
 
         {/* Desktop Links */}
