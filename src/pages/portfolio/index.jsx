@@ -1,28 +1,34 @@
 import { motion } from "motion/react";
 
 const projects = [
+    {
+        id: 1,
+        title: "Structural Steel Frame",
+        category: "Commercial",
+        height: "h-[400px]",
+        image: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=800"
+    },
 {
-    id: 1,
-    title: "Structural Steel Frame",
-    category: "Commercial",
+    id: 2,
+    title: "Pipe Manifold Weld",
+    category: "Marine",
+    height: "h-[600px]",
+    image: "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&q=80&w=800"
+},
+{
+    id: 3,
+    title: "Architectural Rigging",
+    category: "Fabrication",
     height: "h-[400px]",
     image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=800"
 },
 {
-    id: 2,
-    title: "Custom Aluminum Gate",
-    category: "Residential",
+    id: 4,
+    title: "Precision TIG Work",
+    category: "Specialized",
     height: "h-[500px]",
-    image: "https://images.unsplash.com/photo-1516216628859-9bccecad13ec?auto=format&fit=crop&q=80&w=800"
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
 },
-{
-    id: 3,
-    title: "Hardface Bucket Repair",
-    category: "Heavy Equipment",
-    height: "h-[400px]",
-    image: "https://images.unsplash.com/photo-1530124560612-3df9449463ce?auto=format&fit=crop&q=80&w=800"
-},
-// ... and update the <img> tag in your map:
 ];
 
 const Portfolio = () => {
