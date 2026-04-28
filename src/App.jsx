@@ -5,6 +5,7 @@ import Home from './Home';
 import Services from './pages/services';
 import Portfolio from './pages/portfolio';
 import Contact from './pages/contact';
+import NotFound from './pages/NotFound';
 
 function App() {
 
@@ -26,6 +27,7 @@ function App() {
     <Route path="/services" element={<Services />} />
     <Route path="/portfolio" element={<Portfolio />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="*" element={<NotFound />} />
     </Routes>
     </Layout>
   );
