@@ -6,6 +6,7 @@ import Services from './pages/services';
 import Portfolio from './pages/portfolio';
 import Contact from './pages/contact';
 import NotFound from './pages/NotFound';
+import AdminPortal from './pages/admin/index';
 
 function App() {
 
@@ -28,6 +29,7 @@ function App() {
     <Route path="/portfolio" element={<Portfolio />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<NotFound />} />
+    <Route path="/admin" element={<AdminPortal />} />
     </Routes>
     </Layout>
   );
