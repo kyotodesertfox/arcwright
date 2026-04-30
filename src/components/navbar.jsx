@@ -51,7 +51,6 @@ const Navbar = () => {
         <span className="w-2 h-2 bg-weld-red rounded-full animate-pulse" />  904-914-0648 </a>
 
 
-
         {/* Desktop Links */}
         <div className="hidden md:flex space-x-8">
         {navLinks.map((link) => (
