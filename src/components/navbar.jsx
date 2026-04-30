@@ -44,7 +44,6 @@ const Navbar = () => {
 
         </Link>
 
-        {/* Desktop Phone Number - Positioned slightly right of the logo */}
         <a
         href="tel:904-914-0648"
         className="hidden lg:flex items-center gap-2 text-zinc-250 hover:text-weld-red transition-all duration-300 font-mono font-bold text-lg -skew-x-[15deg] tracking-tighter border-l border-zinc-800 pl-8"
@@ -106,6 +105,20 @@ const Navbar = () => {
                 {link.name}
                 </Link>
             ))}
+            <br />
+
+            <Link
+            to="tel:904-914-0648"
+            className="flex items-center gap-4 text-zinc-300 hover:text-weld-red transition-all duration-300 font-mono font-bold text-2xl -skew-x-[15deg] tracking-tighter">
+
+            <span className="w-3 h-3 bg-weld-red rounded-full animate-pulse shadow-[0_0_10px_rgba(255,0,0,0.5)]" />
+            <div className="flex flex-col items-start">
+            <span className="text-xs uppercase tracking-[0.2em] text-zinc-400 font-sans skew-x-[15deg]">Call ArcWright</span>
+            <span>904-914-0648</span>
+            </div>
+
+            </Link>
+
             </motion.div>
         )}
         </AnimatePresence>
