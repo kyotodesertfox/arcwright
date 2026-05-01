@@ -92,7 +92,7 @@ const AdminPortal = () => {
         const fetchFromBranch = async (branch) => {
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}?ref=${branch}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` } // Must be Bearer ${token}
                 });
                 return res.ok ? await res.json() : null;
             } catch (e) { return null; }
