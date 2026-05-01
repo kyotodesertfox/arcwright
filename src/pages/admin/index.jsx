@@ -56,13 +56,21 @@ const AdminPortal = () => {
         try {
             const res = await fetch(`/.netlify/functions/auth?code=${code}`);
             const data = await res.json();
+
             if (data.token) {
                 localStorage.setItem('github_token', data.token);
                 setToken(data.token);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 setStatus("Authenticated!");
+            } else if (data.error) {
+                // This displays the "Access Denied" message from auth.js
+                setStatus(`Denied: ${data.error}`);
+                // Remove the code from the URL so they can try again with a different account
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
-        } catch (err) { setStatus("Login failed."); }
+        } catch (err) {
+            setStatus("Login failed: Connection error.");
+        }
     };
 
     const fetchProjects = async () => {
