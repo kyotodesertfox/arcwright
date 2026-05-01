@@ -16,7 +16,6 @@ const AdminPortal = () => {
     const [token, setToken] = useState(localStorage.getItem('github_token') || null);
 
     const CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
     const REPO_OWNER = import.meta.env.VITE_REPO_OWNER;
     const REPO_NAME = import.meta.env.VITE_REPO_NAME;
 
