@@ -48,6 +48,7 @@ const AdminPortal = () => {
         localStorage.removeItem('github_token');
         setToken(null);
         setStatus("Logged out.");
+        window.location.href = "/";
     };
 
     const handleTokenExchange = async (code) => {
@@ -58,7 +59,7 @@ const AdminPortal = () => {
             if (data.token) {
                 localStorage.setItem('github_token', data.token);
                 setToken(data.token);
-                window.history.replaceState({}, document.title, "/");
+                window.history.replaceState({}, document.title, window.location.pathname);
                 setStatus("Authenticated!");
             }
         } catch (err) { setStatus("Login failed."); }
