@@ -1,46 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { X } from 'lucide-react';
 
 const $projectRoot = 'public/projects/';
 const metadataFile = 'metadata.json';
+const PRESET_TAGS = ['Marine', 'Alloy', 'Steel', 'Aluminum'];
+
+const formatSlug = (slug) => {
+    if (/^\d{8}$/.test(slug)) {
+        const date = new Date(`${slug.slice(0, 4)}-${slug.slice(4, 6)}-${slug.slice(6, 8)}`);
+        if (!isNaN(date.getTime()))
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    return slug;
+};
 
 const AdminPortal = () => {
-    const [currentBranch, setCurrentBranch] = useState(null);
-    const [status, setStatus] = useState('Idle');
-    const [statusType, setStatusType] = useState('idle'); // idle | working | success | error
-    const [projectName, setProjectName] = useState('IMG_' + new Date().toISOString().split('T')[0].replace(/-/g, ''));
-    const [description, setDescription] = useState('');
-    const [client, setClient] = useState('');
-    const [projectList, setProjectList] = useState([]);
-    const [drafts, setDrafts] = useState([]);
-    const [images, setImages] = useState([]);
-    const [altTexts, setAltTexts] = useState({});
-    const [token, setToken] = useState(localStorage.getItem('github_token') || null);
-    const [activeTab, setActiveTab] = useState('projects'); // projects | editor
+    const [currentBranch, setCurrentBranch]   = useState(null);
+    const [status, setStatus]                 = useState('Ready');
+    const [statusType, setStatusType]         = useState('idle');
+    const [projectName, setProjectName]       = useState('');   // folder slug — never shown as primary
+    const [title, setTitle]                   = useState('');   // display title on website
+    const [client, setClient]                 = useState('');
+    const [description, setDescription]       = useState('');
+    const [tags, setTags]                     = useState([]);
+    const [customTagInput, setCustomTagInput] = useState('');
+    const [projectList, setProjectList]       = useState([]);
+    const [projectTitles, setProjectTitles]   = useState({}); // { slug: title } — session cache
+    const [drafts, setDrafts]                 = useState([]);
+    const [images, setImages]                 = useState([]);
+    const [altTexts, setAltTexts]             = useState({});
+    const [token, setToken]                   = useState(localStorage.getItem('github_token') || null);
+    const [activeTab, setActiveTab]           = useState('projects');
     const [confirmPublish, setConfirmPublish] = useState(false);
 
-    const CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const CLIENT_ID  = import.meta.env.VITE_GITHUB_CLIENT_ID;
     const REPO_OWNER = import.meta.env.VITE_REPO_OWNER;
-    const REPO_NAME = import.meta.env.VITE_REPO_NAME;
+    const REPO_NAME  = import.meta.env.VITE_REPO_NAME;
 
-    const setMsg = (msg, type = 'working') => {
-        setStatus(msg);
-        setStatusType(type);
-    };
+    const setMsg = (msg, type = 'working') => { setStatus(msg); setStatusType(type); };
 
     useEffect(() => {
-        if (currentBranch && projectList.length > 0) syncSessionDrafts(currentBranch);
+        if (currentBranch && projectList.length > 0) syncDrafts(currentBranch);
     }, [currentBranch, projectList.length]);
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
+        const code = new URLSearchParams(window.location.search).get('code');
         if (code && !token) handleTokenExchange(code);
     }, []);
 
-    useEffect(() => {
-        if (token) fetchProjects();
-    }, [token]);
+    useEffect(() => { if (token) fetchProjects(); }, [token]);
+
+    // ── AUTH ──────────────────────────────────────────────────────────────────
 
     const loginWithGithub = () => {
         window.location.href = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=repo`;
@@ -49,46 +60,49 @@ const AdminPortal = () => {
     const logout = () => {
         localStorage.removeItem('github_token');
         setToken(null);
-        setMsg('Logged out.', 'idle');
         window.location.href = '/';
     };
 
     const handleTokenExchange = async (code) => {
-        setMsg('Authenticating...', 'working');
+        setMsg('Signing in...', 'working');
         try {
-            const res = await fetch(`/.netlify/functions/auth?code=${code}`);
+            const res  = await fetch(`/.netlify/functions/auth?code=${code}`);
             const data = await res.json();
             if (data.token) {
                 localStorage.setItem('github_token', data.token);
                 setToken(data.token);
                 window.history.replaceState({}, document.title, window.location.pathname);
-                setMsg('Authenticated!', 'success');
-            } else if (data.error) {
-                setMsg(`Denied: ${data.error}`, 'error');
+                setMsg('Signed in!', 'success');
+            } else {
+                setMsg(`Sign-in failed: ${data.error}`, 'error');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
-        } catch {
-            setMsg('Login failed: Connection error.', 'error');
-        }
+        } catch { setMsg('Sign-in failed — check your connection.', 'error'); }
     };
 
+    // ── DATA ──────────────────────────────────────────────────────────────────
+
     const fetchProjects = async () => {
-        setMsg('Fetching projects...', 'working');
+        setMsg('Loading projects...', 'working');
         try {
-            const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${$projectRoot}?ref=main`, {
+            const res  = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${$projectRoot}?ref=main`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
             if (Array.isArray(data)) {
                 setProjectList(data.filter(i => i.type === 'dir').map(i => i.name));
-                setMsg('Ready.', 'success');
+                setMsg('Ready', 'success');
             }
-        } catch (err) { setMsg(`Fetch error: ${err.message}`, 'error'); }
+        } catch (err) { setMsg(`Could not load projects: ${err.message}`, 'error'); }
     };
 
     const loadProject = async (folderName) => {
-        setMsg(`Loading ${folderName}...`, 'working');
+        setMsg('Opening project...', 'working');
         setProjectName(folderName);
+        setTitle('');
+        setClient('');
+        setDescription('');
+        setTags([]);
         setImages([]);
         setAltTexts({});
         setActiveTab('editor');
@@ -110,37 +124,35 @@ const AdminPortal = () => {
         ]);
 
         const fileMap = new Map();
-        if (Array.isArray(mainFiles)) mainFiles.forEach(f => fileMap.set(f.name, f));
+        if (Array.isArray(mainFiles))  mainFiles.forEach(f  => fileMap.set(f.name, f));
         if (Array.isArray(branchFiles)) branchFiles.forEach(f => fileMap.set(f.name, f));
-
-        setImages(Array.from(fileMap.values()).filter(f => f.name.toLowerCase().endsWith('.webp'))
-            .map(img => ({ ...img, displayUrl: img.download_url })));
+        setImages(Array.from(fileMap.values()).filter(f => f.name.toLowerCase().endsWith('.webp')));
 
         const fetchMeta = async (branch) => {
             const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${cleanPath}/${metadataFile}?ref=${branch}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (res.ok) {
-                const d = await res.json();
-                return JSON.parse(atob(d.content));
-            }
+            if (res.ok) { const d = await res.json(); return JSON.parse(atob(d.content)); }
             return null;
         };
 
         const meta = (currentBranch ? await fetchMeta(currentBranch) : null) || await fetchMeta('main');
         if (meta) {
+            const loadedTitle = meta.title && meta.title !== folderName ? meta.title : '';
+            setTitle(loadedTitle);
             setClient(meta.client || '');
             setDescription(meta.description || '');
+            setTags(Array.isArray(meta.tags) ? meta.tags : []);
             setAltTexts(meta.images || {});
-            setMsg(`Loaded.`, 'success');
+            // Cache the title for the project list
+            if (loadedTitle) setProjectTitles(prev => ({ ...prev, [folderName]: loadedTitle }));
+            setMsg('Ready', 'success');
         } else {
-            setClient('');
-            setDescription('');
-            setMsg('New project — ready.', 'success');
+            setMsg('New project — fill in the details below.', 'success');
         }
     };
 
-    const syncSessionDrafts = async (branchName) => {
+    const syncDrafts = async (branchName) => {
         try {
             const results = await Promise.all(projectList.map(name =>
                 fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${$projectRoot}${name}/${metadataFile}?ref=${branchName}`, {
@@ -153,39 +165,40 @@ const AdminPortal = () => {
 
     const commitToBranch = async (folderName, projectData) => {
         if (!currentBranch) return;
-        setMsg('Saving...', 'working');
-        const path = `${$projectRoot}${folderName}/${metadataFile}`;
+        setMsg('Saving changes...', 'working');
+        const path    = `${$projectRoot}${folderName}/${metadataFile}`;
         const content = btoa(JSON.stringify(projectData, null, 2));
         try {
-            const getFile = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${currentBranch}`, {
+            const existing = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${currentBranch}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const fileData = await getFile.json();
+            const existingData = await existing.json();
             await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Admin Update: ${folderName}`, content, branch: currentBranch, sha: fileData.sha || null })
+                body: JSON.stringify({ message: `Update: ${folderName}`, content, branch: currentBranch, sha: existingData.sha || null })
             });
-            setMsg('Saved!', 'success');
+            // Cache title for the project list display
+            if (projectData.title) setProjectTitles(prev => ({ ...prev, [folderName]: projectData.title }));
+            setMsg('Changes saved!', 'success');
             if (!drafts.includes(folderName)) setDrafts(prev => [...prev, folderName]);
         } catch (err) { setMsg(`Save failed: ${err.message}`, 'error'); }
     };
 
     const handleUpload = async (file) => {
         if (!currentBranch) return;
-        setMsg('Converting to WebP...', 'working');
+        setMsg('Uploading photo...', 'working');
         const webpBlob = await convertToWebP(file);
-        const reader = new FileReader();
+        const reader   = new FileReader();
         reader.onloadend = async () => {
             const base64data = reader.result.split(',')[1];
-            const fileName = `${file.name.split('.')[0]}.webp`;
-            setMsg(`Uploading ${fileName}...`, 'working');
+            const fileName   = `${file.name.split('.')[0]}.webp`;
             await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${$projectRoot}${projectName}/${fileName}`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Add image: ${fileName}`, content: base64data, branch: currentBranch })
+                body: JSON.stringify({ message: `Add photo: ${fileName}`, content: base64data, branch: currentBranch })
             });
-            setMsg('Uploaded!', 'success');
+            setMsg('Photo uploaded!', 'success');
             loadProject(projectName);
         };
         reader.readAsDataURL(webpBlob);
@@ -193,11 +206,11 @@ const AdminPortal = () => {
 
     const deleteImage = async (img) => {
         if (!currentBranch) return;
-        setMsg(`Deleting...`, 'working');
+        setMsg('Removing photo...', 'working');
         await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${img.path}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: `Remove image: ${img.name}`, sha: img.sha, branch: currentBranch })
+            body: JSON.stringify({ message: `Remove photo: ${img.name}`, sha: img.sha, branch: currentBranch })
         });
         loadProject(projectName);
     };
@@ -208,8 +221,7 @@ const AdminPortal = () => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = img.width; canvas.height = img.height;
                 canvas.getContext('2d').drawImage(img, 0, 0);
                 canvas.toBlob(resolve, 'image/webp', 0.8);
             };
@@ -220,27 +232,25 @@ const AdminPortal = () => {
 
     const branchID = async () => {
         const sessionBranch = `update-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`;
-        setMsg('Starting session...', 'working');
+        setMsg('Starting editing mode...', 'working');
         try {
-            const mainRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/ref/heads/main`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const mainRes  = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/ref/heads/main`, { headers: { Authorization: `Bearer ${token}` } });
             const mainData = await mainRes.json();
-            const createRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/refs`, {
+            const create   = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/refs`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ ref: `refs/heads/${sessionBranch}`, sha: mainData.object.sha })
             });
-            if (createRes.ok || createRes.status === 422) {
+            if (create.ok || create.status === 422) {
                 setCurrentBranch(sessionBranch);
-                setMsg('Session active.', 'success');
+                setMsg('Editing mode active', 'success');
                 await fetchProjects();
             }
         } catch (err) { setMsg(`Error: ${err.message}`, 'error'); }
     };
 
     const commitToMerge = async () => {
-        setMsg('Publishing...', 'working');
+        setMsg('Publishing to website...', 'working');
         setConfirmPublish(false);
         try {
             const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/merges`, {
@@ -249,283 +259,400 @@ const AdminPortal = () => {
                 body: JSON.stringify({ base: 'main', head: currentBranch, commit_message: `Admin Publish: ${new Date().toLocaleString()}` })
             });
             if (res.ok) {
-                setMsg('LIVE!', 'success');
+                setMsg('Published! Your site will update in ~1 minute.', 'success');
                 setDrafts([]);
                 setCurrentBranch(null);
                 fetchProjects();
             }
-        } catch (err) { setMsg(`Merge error: ${err.message}`, 'error'); }
+        } catch (err) { setMsg(`Publish failed: ${err.message}`, 'error'); }
     };
 
-    const statusDot = {
-        idle:    'bg-zinc-600',
-        working: 'bg-amber-400 animate-pulse',
-        success: 'bg-green-500',
-        error:   'bg-weld-red animate-pulse',
-    }[statusType];
+    // ── TAG HELPERS ───────────────────────────────────────────────────────────
+
+    const toggleTag = (tag) => {
+        setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    };
+
+    const addCustomTag = () => {
+        const t = customTagInput.trim();
+        if (t && !tags.includes(t)) setTags(prev => [...prev, t]);
+        setCustomTagInput('');
+    };
+
+    // ── UI HELPERS ────────────────────────────────────────────────────────────
+
+    const statusDot = { idle: 'bg-zinc-500', working: 'bg-amber-400 animate-pulse', success: 'bg-green-500', error: 'bg-weld-red animate-pulse' }[statusType];
+
+    const displayName = (slug) => projectTitles[slug] || formatSlug(slug);
+
+    const saveProject = () => commitToBranch(projectName, {
+        title: title.trim() || projectName,
+        client,
+        description,
+        tags,
+        images: altTexts,
+    });
 
     // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
+
     if (!token) return (
-        <div className="min-h-screen bg-weld-black flex flex-col items-center justify-center px-6">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-sm"
-            >
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
                 <h1 className="text-5xl font-black uppercase italic text-white tracking-tighter mb-1">
                     ARC<span className="text-weld-red">WRIGHT</span>
                 </h1>
-                <p className="text-zinc-500 uppercase tracking-widest text-xs mb-10">Admin Portal</p>
+                <p className="text-zinc-500 uppercase tracking-widest text-xs mb-10">Portfolio Manager</p>
 
-                <div className="border border-zinc-800 bg-zinc-950 p-8">
+                <div className="bg-zinc-900 border border-zinc-800 p-8">
+                    <p className="text-white font-bold mb-1">Welcome back</p>
                     <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
-                        Sign in with your GitHub account to manage your portfolio and publish changes to the live site.
+                        Sign in to update your portfolio, add project photos, and publish changes to your website.
                     </p>
-                    <button
-                        onClick={loginWithGithub}
-                        className="w-full bg-weld-red hover:bg-red-700 text-white font-bold py-4 uppercase tracking-widest transition-colors text-sm"
-                    >
+                    <button onClick={loginWithGithub} className="w-full bg-weld-red hover:bg-red-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
                         Sign In with GitHub
                     </button>
-                    {status !== 'Idle' && (
-                        <p className="text-zinc-500 text-xs text-center mt-4 uppercase tracking-wider">{status}</p>
-                    )}
+                    {statusType === 'error'   && <p className="text-weld-red  text-xs text-center mt-4">{status}</p>}
+                    {statusType === 'working' && <p className="text-amber-400 text-xs text-center mt-4 animate-pulse">{status}</p>}
                 </div>
+
+                <p className="text-zinc-700 text-xs text-center mt-6 uppercase tracking-widest">arcwrightwelding.com</p>
             </motion.div>
         </div>
     );
 
     // ── MAIN ADMIN ────────────────────────────────────────────────────────────
+
     return (
-        <div className="min-h-screen bg-weld-black text-white">
+        <div className="min-h-screen bg-zinc-950 text-white">
 
             {/* Header */}
             <div className="sticky top-0 z-40 bg-zinc-950 border-b border-zinc-800 px-4 py-3">
-                <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-                    <div>
-                        <h1 className="text-lg font-black uppercase italic tracking-tighter leading-none">
-                            ARC<span className="text-weld-red">WRIGHT</span>
-                        </h1>
-                        <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Admin</p>
+                <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+                    <span className="text-lg font-black uppercase italic tracking-tighter">
+                        ARC<span className="text-weld-red">WRIGHT</span>
+                        <span className="text-zinc-600 text-xs font-normal not-italic ml-2 tracking-widest hidden sm:inline">/ Admin</span>
+                    </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                        {statusType === 'working' && <span className="text-amber-400 text-xs truncate animate-pulse">{status}</span>}
+                        {statusType === 'error'   && <span className="text-weld-red  text-xs truncate">{status}</span>}
+                        {(statusType === 'idle' || statusType === 'success') && (
+                            <span className="flex items-center gap-1.5 text-zinc-500 text-xs">
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot}`} />
+                                {currentBranch ? 'Editing' : 'Ready'}
+                            </span>
+                        )}
+                        <button onClick={logout} className="text-zinc-600 hover:text-zinc-300 text-xs uppercase tracking-wider transition-colors shrink-0">
+                            Sign Out
+                        </button>
                     </div>
-
-                    {/* Status pill */}
-                    <div className="flex-1 flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-3 py-2 min-w-0">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot}`} />
-                        <span className="text-zinc-400 text-xs truncate">{status}</span>
-                    </div>
-
-                    <button onClick={logout} className="text-zinc-600 hover:text-weld-red text-xs uppercase tracking-wider transition-colors shrink-0">
-                        Out
-                    </button>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
 
-                {/* Session Banner */}
-                <div className={`mb-6 p-4 border flex items-center justify-between gap-4 ${currentBranch ? 'border-amber-500/30 bg-amber-500/5' : 'border-zinc-800 bg-zinc-950'}`}>
-                    <div>
-                        {currentBranch ? (
-                            <>
-                                <p className="text-amber-400 text-xs uppercase tracking-widest font-bold mb-0.5">Session Active</p>
-                                <p className="text-zinc-400 font-mono text-xs">{currentBranch}</p>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-0.5">No Active Session</p>
-                                <p className="text-zinc-600 text-xs">Start a session to make changes</p>
-                            </>
-                        )}
+                {/* Editing Mode Card */}
+                {!currentBranch ? (
+                    <div className="bg-zinc-900 border border-zinc-800 p-6">
+                        <p className="text-white font-bold text-base mb-1">Ready to make changes?</p>
+                        <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+                            Tap <strong className="text-white">Start Editing</strong> to open a workspace. Changes won't go live until you tap <strong className="text-white">Publish to Website</strong>.
+                        </p>
+                        <div className="space-y-3 mb-6 border-t border-zinc-800 pt-5">
+                            {[
+                                { n: '1', title: 'Start Editing',        detail: 'Opens a safe workspace for your changes' },
+                                { n: '2', title: 'Update your projects', detail: 'Set job titles, tags, descriptions, and photos' },
+                                { n: '3', title: 'Publish to Website',   detail: 'Everything goes live in about 1 minute' },
+                            ].map(s => (
+                                <div key={s.n} className="flex items-start gap-3">
+                                    <span className="w-6 h-6 bg-weld-red text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
+                                    <div>
+                                        <p className="text-zinc-200 text-sm font-bold">{s.title}</p>
+                                        <p className="text-zinc-500 text-xs">{s.detail}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <button onClick={branchID} className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
+                            Start Editing
+                        </button>
                     </div>
-                    {currentBranch ? (
-                        <button
-                            onClick={() => setConfirmPublish(true)}
-                            className="shrink-0 bg-weld-red hover:bg-red-700 text-white font-bold py-3 px-5 uppercase tracking-widest text-xs transition-colors"
-                        >
-                            Publish Live
+                ) : (
+                    <div className="bg-amber-500/10 border border-amber-500/40 p-5 flex items-start justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                                <p className="text-amber-400 text-sm font-bold uppercase tracking-widest">Editing Mode Active</p>
+                            </div>
+                            <p className="text-zinc-400 text-sm leading-relaxed">
+                                {drafts.length > 0
+                                    ? `${drafts.length} project${drafts.length > 1 ? 's' : ''} with unsaved changes — publish when you're done.`
+                                    : 'Make your changes below, then publish to update your website.'}
+                            </p>
+                        </div>
+                        <button onClick={() => setConfirmPublish(true)} className="shrink-0 bg-weld-red hover:bg-red-700 text-white font-bold py-3 px-5 uppercase tracking-widest text-xs transition-colors">
+                            Publish
                         </button>
-                    ) : (
-                        <button
-                            onClick={branchID}
-                            className="shrink-0 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-5 uppercase tracking-widest text-xs transition-colors"
-                        >
-                            Start Session
-                        </button>
-                    )}
-                </div>
+                    </div>
+                )}
 
-                {/* Tab Nav */}
-                <div className="flex border-b border-zinc-800 mb-6">
-                    {['projects', 'editor'].map(tab => (
+                {/* Tabs */}
+                <div className="flex border-b border-zinc-800">
+                    {[
+                        { key: 'projects', label: `Your Projects (${projectList.length})` },
+                        { key: 'editor',   label: projectName ? `Editing: ${displayName(projectName)}` : 'Edit a Project' },
+                    ].map(tab => (
                         <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`py-3 px-6 text-xs uppercase tracking-widest font-bold transition-colors border-b-2 -mb-px ${
-                                activeTab === tab
-                                    ? 'border-weld-red text-white'
-                                    : 'border-transparent text-zinc-600 hover:text-zinc-400'
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`py-3 px-5 text-xs uppercase tracking-widest font-bold transition-colors border-b-2 -mb-px truncate max-w-[50%] ${
+                                activeTab === tab.key ? 'border-weld-red text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
-                            {tab === 'projects' ? `Projects (${projectList.length})` : `Edit: ${projectName}`}
+                            {tab.label}
                         </button>
                     ))}
                 </div>
 
-                {/* PROJECTS TAB */}
+                {/* ── PROJECTS TAB ── */}
                 <AnimatePresence mode="wait">
                 {activeTab === 'projects' && (
-                    <motion.div key="projects" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        {/* New project button */}
-                        <button
-                            onClick={() => {
-                                setProjectName('IMG_' + new Date().toISOString().split('T')[0].replace(/-/g, ''));
-                                setImages([]);
-                                setClient('');
-                                setDescription('');
-                                setAltTexts({});
-                                setActiveTab('editor');
-                            }}
-                            className="w-full mb-4 border border-dashed border-zinc-700 hover:border-weld-red py-4 text-zinc-500 hover:text-weld-red text-sm uppercase tracking-widest transition-colors font-bold"
-                        >
-                            + New Project
-                        </button>
+                    <motion.div key="projects" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                        {currentBranch && (
+                            <button
+                                onClick={() => {
+                                    const slug = 'IMG_' + new Date().toISOString().split('T')[0].replace(/-/g, '');
+                                    setProjectName(slug); setTitle(''); setImages([]); setClient(''); setDescription(''); setTags([]); setAltTexts({});
+                                    setActiveTab('editor');
+                                }}
+                                className="w-full border border-dashed border-zinc-700 hover:border-weld-red py-4 text-zinc-400 hover:text-weld-red text-sm font-bold uppercase tracking-widest transition-colors"
+                            >
+                                + Add New Project
+                            </button>
+                        )}
 
-                        <div className="grid grid-cols-1 gap-2">
-                            {projectList
-                                .sort((a, b) => (drafts.includes(a) ? -1 : drafts.includes(b) ? 1 : b.localeCompare(a)))
-                                .map(name => (
-                                    <motion.button
-                                        key={name}
-                                        onClick={() => loadProject(name)}
-                                        whileTap={{ scale: 0.98 }}
-                                        className={`w-full text-left p-4 border transition-colors flex items-center justify-between ${
-                                            projectName === name && activeTab === 'editor'
-                                                ? 'border-weld-red bg-weld-red/5'
-                                                : 'border-zinc-800 bg-zinc-950 hover:border-zinc-600'
-                                        }`}
-                                    >
-                                        <div>
-                                            <p className="text-white font-bold text-sm uppercase tracking-wide">{name}</p>
-                                            {drafts.includes(name) && (
-                                                <p className="text-amber-400 text-[10px] uppercase tracking-widest mt-0.5">● Unsaved Draft</p>
-                                            )}
-                                        </div>
-                                        <span className="text-zinc-600 text-xs">Edit →</span>
-                                    </motion.button>
-                                ))
-                            }
-                        </div>
+                        {[...projectList]
+                            .sort((a, b) => (drafts.includes(a) ? -1 : drafts.includes(b) ? 1 : b.localeCompare(a)))
+                            .map(name => (
+                                <motion.button
+                                    key={name}
+                                    onClick={() => loadProject(name)}
+                                    whileTap={{ scale: 0.98 }}
+                                    className={`w-full text-left p-4 border transition-colors flex items-center justify-between gap-3 ${
+                                        projectName === name && activeTab === 'editor'
+                                            ? 'border-weld-red bg-weld-red/5'
+                                            : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600'
+                                    }`}
+                                >
+                                    <div className="min-w-0">
+                                        <p className="text-white font-bold text-sm truncate">{displayName(name)}</p>
+                                        {drafts.includes(name) && (
+                                            <p className="text-amber-400 text-[10px] uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />Unsaved changes
+                                            </p>
+                                        )}
+                                    </div>
+                                    <span className="text-zinc-500 text-xs shrink-0">Edit →</span>
+                                </motion.button>
+                            ))
+                        }
                     </motion.div>
                 )}
 
-                {/* EDITOR TAB */}
+                {/* ── EDITOR TAB ── */}
                 {activeTab === 'editor' && (
-                    <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                    <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-7">
 
                         {!currentBranch && (
-                            <div className="border border-amber-500/30 bg-amber-500/5 p-4 text-amber-400 text-xs uppercase tracking-widest">
-                                Start a session above to make changes.
+                            <div className="border border-zinc-700 bg-zinc-900 p-4 text-center">
+                                <p className="text-zinc-400 text-sm">
+                                    You're in <strong className="text-white">read-only mode</strong>. Tap <strong className="text-white">Start Editing</strong> above to make changes.
+                                </p>
                             </div>
                         )}
 
-                        {/* Project Name */}
+                        {/* Section: Job Details */}
                         <div>
-                            <label className="block text-zinc-500 text-[10px] uppercase tracking-widest mb-2">Project ID</label>
-                            <input
-                                type="text"
-                                value={projectName}
-                                onChange={e => setProjectName(e.target.value)}
-                                disabled={!currentBranch}
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 text-sm font-mono focus:outline-none focus:border-weld-red disabled:opacity-50 transition-colors"
-                            />
-                        </div>
+                            <SectionHeader label="Job Details" />
+                            <div className="space-y-4">
 
-                        {/* Client */}
-                        <div>
-                            <label className="block text-zinc-500 text-[10px] uppercase tracking-widest mb-2">Client</label>
-                            <input
-                                type="text"
-                                value={client}
-                                onChange={e => setClient(e.target.value)}
-                                disabled={!currentBranch}
-                                placeholder="Client name"
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-50 transition-colors"
-                            />
-                        </div>
+                                {/* Job Title */}
+                                <div>
+                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
+                                        Job Title <span className="text-zinc-600 font-normal">(shown on your website)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={e => setTitle(e.target.value)}
+                                        disabled={!currentBranch}
+                                        placeholder="e.g. Custom Driveway Gate, Structural Repair, Boat Trailer…"
+                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                    />
+                                    {projectName && (
+                                        <p className="text-zinc-700 text-[10px] mt-1 font-mono">Folder: {projectName}</p>
+                                    )}
+                                </div>
 
-                        {/* Description */}
-                        <div>
-                            <label className="block text-zinc-500 text-[10px] uppercase tracking-widest mb-2">Description</label>
-                            <textarea
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
-                                disabled={!currentBranch}
-                                placeholder="Describe the project, materials, techniques..."
-                                rows={4}
-                                className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-50 transition-colors resize-none"
-                            />
-                        </div>
+                                {/* Client */}
+                                <div>
+                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
+                                        Client Name <span className="text-zinc-600 font-normal">(optional)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={client}
+                                        onChange={e => setClient(e.target.value)}
+                                        disabled={!currentBranch}
+                                        placeholder="e.g. Smith Family"
+                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                    />
+                                </div>
 
-                        {/* Images */}
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <label className="text-zinc-500 text-[10px] uppercase tracking-widest">
-                                    Photos ({images.length})
-                                </label>
-                                <button onClick={() => loadProject(projectName)} className="text-zinc-600 hover:text-zinc-400 text-xs uppercase tracking-wider transition-colors">
-                                    Refresh
-                                </button>
+                                {/* Description */}
+                                <div>
+                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
+                                        About This Job <span className="text-zinc-600 font-normal">(optional — describe the work, materials, etc.)</span>
+                                    </label>
+                                    <textarea
+                                        value={description}
+                                        onChange={e => setDescription(e.target.value)}
+                                        disabled={!currentBranch}
+                                        placeholder="What did you build? What materials did you use? What made this job stand out?"
+                                        rows={4}
+                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors resize-none"
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Section: Tags */}
+                        <div>
+                            <SectionHeader label="Job Type / Tags" sublabel="Customers can filter the portfolio by these" />
+
+                            {/* Preset tags */}
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {PRESET_TAGS.map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => currentBranch && toggleTag(tag)}
+                                        disabled={!currentBranch}
+                                        className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors border ${
+                                            tags.includes(tag)
+                                                ? 'bg-weld-red border-weld-red text-white'
+                                                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                                        } disabled:opacity-40 disabled:cursor-default`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
+
+                                {/* Custom tags (not in presets) */}
+                                {tags.filter(t => !PRESET_TAGS.includes(t)).map(tag => (
+                                    <span key={tag} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-widest bg-weld-red border border-weld-red text-white">
+                                        {tag}
+                                        {currentBranch && (
+                                            <button onClick={() => setTags(prev => prev.filter(t => t !== tag))} className="hover:opacity-70 transition-opacity">
+                                                <X size={10} />
+                                            </button>
+                                        )}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Add custom tag */}
+                            {currentBranch && (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={customTagInput}
+                                        onChange={e => setCustomTagInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && addCustomTag()}
+                                        placeholder="Add a custom tag…"
+                                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white px-3 py-2 text-xs focus:outline-none focus:border-weld-red transition-colors"
+                                    />
+                                    <button
+                                        onClick={addCustomTag}
+                                        disabled={!customTagInput.trim()}
+                                        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold uppercase tracking-widest disabled:opacity-40 transition-colors"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            )}
+
+                            {!currentBranch && tags.length === 0 && (
+                                <p className="text-zinc-700 text-xs">No tags set.</p>
+                            )}
+                        </div>
+
+                        {/* Section: Photos */}
+                        <div>
+                            <SectionHeader
+                                label={`Photos${images.length > 0 ? ` (${images.length})` : ''}`}
+                                action={<button onClick={() => loadProject(projectName)} className="text-zinc-600 hover:text-zinc-400 text-xs uppercase tracking-wider transition-colors">Refresh</button>}
+                            />
 
                             <div className="grid grid-cols-2 gap-3">
                                 {images.map(img => {
                                     const imageID = img.name.replace('.webp', '');
                                     return (
-                                        <div key={img.sha} className="border border-zinc-800 bg-zinc-950">
-                                            <img src={img.download_url} className="w-full h-32 object-cover" alt="" />
-                                            <div className="p-2 space-y-2">
+                                        <div key={img.sha} className="border border-zinc-800 bg-zinc-900">
+                                            <div className="relative">
+                                                <img src={img.download_url} className="w-full h-28 object-cover" alt="" />
+                                                {currentBranch && (
+                                                    <button
+                                                        onClick={() => deleteImage(img)}
+                                                        className="absolute top-1.5 right-1.5 bg-black/70 hover:bg-weld-red text-white w-7 h-7 flex items-center justify-center transition-colors"
+                                                        aria-label="Remove photo"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="p-2">
                                                 <input
                                                     type="text"
                                                     value={altTexts[imageID] || ''}
                                                     onChange={e => setAltTexts(prev => ({ ...prev, [imageID]: e.target.value }))}
-                                                    placeholder="Alt text..."
+                                                    placeholder="Photo description…"
                                                     disabled={!currentBranch}
-                                                    className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-50"
+                                                    className="w-full bg-zinc-950 border border-zinc-700 text-zinc-300 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40"
                                                 />
-                                                {currentBranch && (
-                                                    <button
-                                                        onClick={() => deleteImage(img)}
-                                                        className="w-full text-zinc-600 hover:text-weld-red text-[10px] uppercase tracking-wider transition-colors py-1"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                )}
                                             </div>
                                         </div>
                                     );
                                 })}
 
-                                {/* Upload tile */}
                                 {currentBranch && (
-                                    <label className="border border-dashed border-zinc-700 hover:border-weld-red h-32 flex flex-col items-center justify-center cursor-pointer transition-colors group">
-                                        <span className="text-2xl mb-1">📷</span>
-                                        <span className="text-zinc-600 group-hover:text-weld-red text-[10px] uppercase tracking-widest transition-colors">Add Photo</span>
+                                    <label className="border-2 border-dashed border-zinc-700 hover:border-weld-red h-[7.75rem] flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                                        <span className="text-3xl mb-1.5">📷</span>
+                                        <span className="text-zinc-500 group-hover:text-weld-red text-xs uppercase tracking-widest font-bold transition-colors">Add Photo</span>
                                         <input type="file" accept="image/*" onChange={e => handleUpload(e.target.files[0])} className="hidden" />
                                     </label>
+                                )}
+
+                                {images.length === 0 && !currentBranch && (
+                                    <div className="col-span-2 border border-zinc-800 p-8 text-center">
+                                        <p className="text-zinc-600 text-sm">No photos yet</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Save button */}
+                        {/* Save Button */}
                         {currentBranch && (
-                            <motion.button
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => commitToBranch(projectName, { title: projectName, client, description, images: altTexts })}
-                                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors"
-                            >
-                                Save to Draft
-                            </motion.button>
+                            <div>
+                                <motion.button
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={saveProject}
+                                    className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors"
+                                >
+                                    Save Changes
+                                </motion.button>
+                                <p className="text-zinc-600 text-xs text-center mt-2">
+                                    Saved here — tap Publish above when you're ready to go live.
+                                </p>
+                            </div>
                         )}
                     </motion.div>
                 )}
@@ -535,35 +662,28 @@ const AdminPortal = () => {
             {/* Publish Confirm Modal */}
             <AnimatePresence>
             {confirmPublish && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setConfirmPublish(false)} />
                     <motion.div
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 50, opacity: 0 }}
-                        className="relative z-10 w-full max-w-sm bg-zinc-950 border border-zinc-800 p-8"
+                        initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
+                        className="relative z-10 w-full max-w-sm bg-zinc-900 border border-zinc-700 p-8"
                     >
-                        <h2 className="text-2xl font-black uppercase italic text-white mb-2">Publish Live?</h2>
-                        <p className="text-zinc-400 text-sm mb-8">
-                            This will merge all drafts to the live site. This cannot be undone.
+                        <h2 className="text-2xl font-black uppercase italic text-white mb-2">Publish to Website?</h2>
+                        <p className="text-zinc-400 text-sm mb-2 leading-relaxed">
+                            All saved changes will go live on <strong className="text-white">arcwrightwelding.com</strong> in about 1 minute.
                         </p>
+                        {drafts.length > 0 && (
+                            <p className="text-amber-400 text-xs mb-6 uppercase tracking-widest">
+                                {drafts.length} project{drafts.length > 1 ? 's' : ''} will be updated
+                            </p>
+                        )}
+                        {drafts.length === 0 && <div className="mb-6" />}
                         <div className="flex gap-3">
-                            <button
-                                onClick={() => setConfirmPublish(false)}
-                                className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-400 font-bold py-3 uppercase tracking-widest text-xs transition-colors"
-                            >
+                            <button onClick={() => setConfirmPublish(false)} className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white font-bold py-3 uppercase tracking-widest text-xs transition-colors">
                                 Cancel
                             </button>
-                            <button
-                                onClick={commitToMerge}
-                                className="flex-1 bg-weld-red hover:bg-red-700 text-white font-bold py-3 uppercase tracking-widest text-xs transition-colors"
-                            >
-                                Go Live
+                            <button onClick={commitToMerge} className="flex-1 bg-weld-red hover:bg-red-700 text-white font-bold py-3 uppercase tracking-widest text-xs transition-colors">
+                                Publish Now
                             </button>
                         </div>
                     </motion.div>
@@ -573,5 +693,15 @@ const AdminPortal = () => {
         </div>
     );
 };
+
+// Small helper component for section headers inside the editor
+const SectionHeader = ({ label, sublabel, action }) => (
+    <div className="flex items-center gap-3 mb-4">
+        <span className="text-zinc-400 text-xs uppercase tracking-widest font-bold shrink-0">{label}</span>
+        {sublabel && <span className="text-zinc-700 text-[10px] shrink-0">{sublabel}</span>}
+        <div className="flex-1 h-px bg-zinc-800" />
+        {action}
+    </div>
+);
 
 export default AdminPortal;
