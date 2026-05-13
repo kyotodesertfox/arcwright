@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { X } from 'lucide-react';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,12 +51,13 @@ const Navbar = () => {
 
                 {/* Hamburger Button */}
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="md:hidden text-white flex flex-col justify-center items-center w-8 h-8 space-y-1.5 z-[60]"
+                    onClick={() => setIsOpen(true)}
+                    className="md:hidden text-white flex flex-col justify-center items-center w-10 h-10 space-y-1.5"
+                    aria-label="Open menu"
                 >
-                    <motion.span animate={isOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }} className="w-full h-1 bg-white block" />
-                    <motion.span animate={isOpen ? { opacity: 0 } : { opacity: 1 }} className="w-full h-1 bg-white block" />
-                    <motion.span animate={isOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} className="w-full h-1 bg-white block" />
+                    <span className="w-6 h-0.5 bg-white block" />
+                    <span className="w-6 h-0.5 bg-white block" />
+                    <span className="w-4 h-0.5 bg-weld-red block self-start" />
                 </button>
             </div>
 
@@ -63,34 +65,68 @@ const Navbar = () => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed inset-0 bg-zinc-950 z-50 flex flex-col justify-center items-center space-y-8"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 bg-zinc-950 z-50 flex flex-col"
                     >
-                        <div className="absolute top-0 left-0 right-0 h-[3px] bg-weld-red" />
-                        {navLinks.map((link) => (
+                        {/* Red top stripe */}
+                        <div className="h-[3px] bg-gradient-to-r from-red-900 via-weld-red to-red-900 flex-shrink-0" />
+
+                        {/* Header row */}
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-800 flex-shrink-0">
                             <Link
-                                key={link.name}
-                                to={link.path}
+                                to="/"
                                 onClick={() => setIsOpen(false)}
-                                className="text-4xl font-black uppercase italic text-white hover:text-weld-red transition-colors"
+                                className="text-xl font-black italic tracking-tighter text-white"
                             >
-                                {link.name}
+                                ARC<span className="text-weld-red">WRIGHT</span>
+                                <span className="text-zinc-500 text-sm font-medium not-italic ml-2 tracking-normal">WELDING</span>
                             </Link>
-                        ))}
-                        <br />
-                        <a
-                            href="tel:904-914-0648"
-                            className="flex items-center gap-4 text-zinc-300 hover:text-weld-red transition-all duration-300 font-mono font-bold text-2xl -skew-x-[15deg] tracking-tighter"
-                        >
-                            <span className="w-3 h-3 bg-weld-red rounded-full animate-pulse shadow-[0_0_10px_rgba(255,0,0,0.5)]" />
-                            <div className="flex flex-col items-start">
-                                <span className="text-xs uppercase tracking-[0.2em] text-zinc-400 font-sans skew-x-[15deg]">Call ArcWright</span>
-                                <span>904-914-0648</span>
-                            </div>
-                        </a>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="text-zinc-400 hover:text-white transition-colors w-10 h-10 flex items-center justify-center"
+                                aria-label="Close menu"
+                            >
+                                <X size={22} />
+                            </button>
+                        </div>
+
+                        {/* Nav links */}
+                        <div className="flex flex-col flex-grow justify-center px-8">
+                            {navLinks.map((link, i) => (
+                                <motion.div
+                                    key={link.name}
+                                    initial={{ opacity: 0, x: -16 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.06, duration: 0.2 }}
+                                >
+                                    <Link
+                                        to={link.path}
+                                        onClick={() => setIsOpen(false)}
+                                        className="flex items-center gap-4 py-5 text-3xl font-black uppercase italic text-white hover:text-weld-red transition-colors group border-b border-zinc-900 last:border-0"
+                                    >
+                                        <span className="w-0 h-0.5 bg-weld-red group-hover:w-5 transition-all duration-300 flex-shrink-0" />
+                                        {link.name}
+                                    </Link>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* Phone CTA pinned at bottom */}
+                        <div className="px-8 py-8 border-t border-zinc-800 flex-shrink-0">
+                            <a
+                                href="tel:904-914-0648"
+                                className="flex items-center gap-3 text-white hover:text-weld-red transition-colors group"
+                            >
+                                <span className="w-2 h-2 bg-weld-red rounded-full animate-pulse flex-shrink-0" />
+                                <div>
+                                    <p className="font-mono font-bold text-xl tracking-tighter">904-914-0648</p>
+                                    <p className="text-zinc-600 text-xs uppercase tracking-widest font-bold">Free Estimates</p>
+                                </div>
+                            </a>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

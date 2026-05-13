@@ -69,12 +69,12 @@ const Footer = () => {
             {/* Bottom Bar */}
             <div className="border-t border-zinc-900 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-                    <p className="text-zinc-600 text-xs uppercase tracking-[0.2em]">
+                    <p className="text-zinc-400 text-xs uppercase tracking-[0.2em]">
                         © {new Date().getFullYear()} ArcWright Welding | Jacksonville, FL
                     </p>
-                    <p className="text-zinc-700 text-xs uppercase tracking-widest font-bold">
+                    <p className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
                         Crafted by{' '}
-                        <a href="mailto:zenko18@gmail.com?subject=ArcWright%20Website" className="hover:text-zinc-400 transition-colors">
+                        <a href="mailto:zenko18@gmail.com?subject=ArcWright%20Website" className="hover:text-white transition-colors">
                             Justin
                         </a>
                     </p>
