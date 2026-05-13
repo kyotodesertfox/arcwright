@@ -19,14 +19,14 @@ const AdminPortal = () => {
     const [currentBranch, setCurrentBranch]   = useState(null);
     const [status, setStatus]                 = useState('Ready');
     const [statusType, setStatusType]         = useState('idle');
-    const [projectName, setProjectName]       = useState('');   // folder slug — never shown as primary
-    const [title, setTitle]                   = useState('');   // display title on website
+    const [projectName, setProjectName]       = useState('');
+    const [title, setTitle]                   = useState('');
     const [client, setClient]                 = useState('');
     const [description, setDescription]       = useState('');
     const [tags, setTags]                     = useState([]);
     const [customTagInput, setCustomTagInput] = useState('');
     const [projectList, setProjectList]       = useState([]);
-    const [projectTitles, setProjectTitles]   = useState({}); // { slug: title } — session cache
+    const [projectTitles, setProjectTitles]   = useState({});
     const [drafts, setDrafts]                 = useState([]);
     const [images, setImages]                 = useState([]);
     const [altTexts, setAltTexts]             = useState({});
@@ -144,7 +144,6 @@ const AdminPortal = () => {
             setDescription(meta.description || '');
             setTags(Array.isArray(meta.tags) ? meta.tags : []);
             setAltTexts(meta.images || {});
-            // Cache the title for the project list
             if (loadedTitle) setProjectTitles(prev => ({ ...prev, [folderName]: loadedTitle }));
             setMsg('Ready', 'success');
         } else {
@@ -178,7 +177,6 @@ const AdminPortal = () => {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: `Update: ${folderName}`, content, branch: currentBranch, sha: existingData.sha || null })
             });
-            // Cache title for the project list display
             if (projectData.title) setProjectTitles(prev => ({ ...prev, [folderName]: projectData.title }));
             setMsg('Changes saved!', 'success');
             if (!drafts.includes(folderName)) setDrafts(prev => [...prev, folderName]);
@@ -281,7 +279,7 @@ const AdminPortal = () => {
 
     // ── UI HELPERS ────────────────────────────────────────────────────────────
 
-    const statusDot = { idle: 'bg-zinc-500', working: 'bg-amber-400 animate-pulse', success: 'bg-green-500', error: 'bg-weld-red animate-pulse' }[statusType];
+    const statusDot = { idle: 'bg-zinc-400', working: 'bg-amber-400 animate-pulse', success: 'bg-green-500', error: 'bg-weld-red animate-pulse' }[statusType];
 
     const displayName = (slug) => projectTitles[slug] || formatSlug(slug);
 
@@ -296,26 +294,31 @@ const AdminPortal = () => {
     // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
 
     if (!token) return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
-                <h1 className="text-5xl font-black uppercase italic text-white tracking-tighter mb-1">
-                    ARC<span className="text-weld-red">WRIGHT</span>
-                </h1>
-                <p className="text-zinc-500 uppercase tracking-widest text-xs mb-10">Portfolio Manager</p>
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-1 h-8 bg-weld-red inline-block" />
+                        <h1 className="text-4xl font-black uppercase italic text-zinc-900 tracking-tighter">
+                            ARC<span className="text-weld-red">WRIGHT</span>
+                        </h1>
+                    </div>
+                    <p className="text-zinc-400 uppercase tracking-widest text-xs pl-3">Portfolio Manager</p>
+                </div>
 
-                <div className="bg-zinc-900 border border-zinc-800 p-8">
-                    <p className="text-white font-bold mb-1">Welcome back</p>
-                    <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
+                <div className="bg-white border border-zinc-200 shadow-sm p-8">
+                    <p className="text-zinc-900 font-bold mb-1">Welcome back</p>
+                    <p className="text-zinc-500 text-sm mb-8 leading-relaxed">
                         Sign in to update your portfolio, add project photos, and publish changes to your website.
                     </p>
                     <button onClick={loginWithGithub} className="w-full bg-weld-red hover:bg-red-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
                         Sign In with GitHub
                     </button>
                     {statusType === 'error'   && <p className="text-weld-red  text-xs text-center mt-4">{status}</p>}
-                    {statusType === 'working' && <p className="text-amber-400 text-xs text-center mt-4 animate-pulse">{status}</p>}
+                    {statusType === 'working' && <p className="text-amber-500 text-xs text-center mt-4 animate-pulse">{status}</p>}
                 </div>
 
-                <p className="text-zinc-700 text-xs text-center mt-6 uppercase tracking-widest">arcwrightwelding.com</p>
+                <p className="text-zinc-400 text-xs text-center mt-6 uppercase tracking-widest">arcwrightwelding.com</p>
             </motion.div>
         </div>
     );
@@ -323,41 +326,44 @@ const AdminPortal = () => {
     // ── MAIN ADMIN ────────────────────────────────────────────────────────────
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white">
+        <div className="min-h-screen bg-white text-zinc-900">
 
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-zinc-950 border-b border-zinc-800 px-4 py-3">
-                <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-                    <span className="text-lg font-black uppercase italic tracking-tighter">
-                        ARC<span className="text-weld-red">WRIGHT</span>
-                        <span className="text-zinc-600 text-xs font-normal not-italic ml-2 tracking-widest hidden sm:inline">/ Admin</span>
-                    </span>
+            <div className="sticky top-0 z-40 bg-white border-b border-zinc-200 px-4 py-3">
+                <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="w-0.5 h-6 bg-weld-red inline-block flex-shrink-0" />
+                        <span className="text-lg font-black uppercase italic tracking-tighter text-zinc-900">
+                            ARC<span className="text-weld-red">WRIGHT</span>
+                            <span className="text-zinc-400 text-xs font-normal not-italic ml-2 tracking-widest hidden sm:inline">/ Admin</span>
+                        </span>
+                    </div>
                     <div className="flex items-center gap-3 min-w-0">
-                        {statusType === 'working' && <span className="text-amber-400 text-xs truncate animate-pulse">{status}</span>}
+                        {statusType === 'working' && <span className="text-amber-500 text-xs truncate animate-pulse">{status}</span>}
                         {statusType === 'error'   && <span className="text-weld-red  text-xs truncate">{status}</span>}
                         {(statusType === 'idle' || statusType === 'success') && (
-                            <span className="flex items-center gap-1.5 text-zinc-500 text-xs">
+                            <span className="flex items-center gap-1.5 text-zinc-400 text-xs">
                                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot}`} />
                                 {currentBranch ? 'Editing' : 'Ready'}
                             </span>
                         )}
-                        <button onClick={logout} className="text-zinc-600 hover:text-zinc-300 text-xs uppercase tracking-wider transition-colors shrink-0">
+                        <button onClick={logout} className="text-zinc-400 hover:text-zinc-600 text-xs uppercase tracking-wider transition-colors shrink-0">
                             Sign Out
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+            <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
                 {/* Editing Mode Card */}
                 {!currentBranch ? (
-                    <div className="bg-zinc-900 border border-zinc-800 p-6">
-                        <p className="text-white font-bold text-base mb-1">Ready to make changes?</p>
-                        <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                            Tap <strong className="text-white">Start Editing</strong> to open a workspace. Changes won't go live until you tap <strong className="text-white">Publish to Website</strong>.
+                    <div className="bg-zinc-50 border border-zinc-200 p-8">
+                        <p className="text-zinc-900 font-bold text-base mb-1">Ready to make changes?</p>
+                        <p className="text-zinc-500 text-sm mb-8 leading-relaxed">
+                            Tap <strong className="text-zinc-900">Start Editing</strong> to open a workspace. Changes won't go live until you tap <strong className="text-zinc-900">Publish to Website</strong>.
                         </p>
-                        <div className="space-y-3 mb-6 border-t border-zinc-800 pt-5">
+                        <div className="space-y-4 mb-8 border-t border-zinc-200 pt-6">
                             {[
                                 { n: '1', title: 'Start Editing',        detail: 'Opens a safe workspace for your changes' },
                                 { n: '2', title: 'Update your projects', detail: 'Set job titles, tags, descriptions, and photos' },
@@ -366,24 +372,24 @@ const AdminPortal = () => {
                                 <div key={s.n} className="flex items-start gap-3">
                                     <span className="w-6 h-6 bg-weld-red text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
                                     <div>
-                                        <p className="text-zinc-200 text-sm font-bold">{s.title}</p>
-                                        <p className="text-zinc-500 text-xs">{s.detail}</p>
+                                        <p className="text-zinc-800 text-sm font-bold">{s.title}</p>
+                                        <p className="text-zinc-400 text-xs">{s.detail}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <button onClick={branchID} className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
+                        <button onClick={branchID} className="w-full bg-zinc-900 hover:bg-zinc-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
                             Start Editing
                         </button>
                     </div>
                 ) : (
-                    <div className="bg-amber-500/10 border border-amber-500/40 p-5 flex items-start justify-between gap-4">
+                    <div className="bg-amber-50 border border-amber-200 p-6 flex items-start justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-                                <p className="text-amber-400 text-sm font-bold uppercase tracking-widest">Editing Mode Active</p>
+                                <p className="text-amber-600 text-sm font-bold uppercase tracking-widest">Editing Mode Active</p>
                             </div>
-                            <p className="text-zinc-400 text-sm leading-relaxed">
+                            <p className="text-zinc-500 text-sm leading-relaxed">
                                 {drafts.length > 0
                                     ? `${drafts.length} project${drafts.length > 1 ? 's' : ''} with unsaved changes — publish when you're done.`
                                     : 'Make your changes below, then publish to update your website.'}
@@ -396,7 +402,7 @@ const AdminPortal = () => {
                 )}
 
                 {/* Tabs */}
-                <div className="flex border-b border-zinc-800">
+                <div className="flex border-b border-zinc-200">
                     {[
                         { key: 'projects', label: `Your Projects (${projectList.length})` },
                         { key: 'editor',   label: projectName ? `Editing: ${displayName(projectName)}` : 'Edit a Project' },
@@ -405,7 +411,7 @@ const AdminPortal = () => {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`py-3 px-5 text-xs uppercase tracking-widest font-bold transition-colors border-b-2 -mb-px truncate max-w-[50%] ${
-                                activeTab === tab.key ? 'border-weld-red text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                                activeTab === tab.key ? 'border-weld-red text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'
                             }`}
                         >
                             {tab.label}
@@ -424,7 +430,7 @@ const AdminPortal = () => {
                                     setProjectName(slug); setTitle(''); setImages([]); setClient(''); setDescription(''); setTags([]); setAltTexts({});
                                     setActiveTab('editor');
                                 }}
-                                className="w-full border border-dashed border-zinc-700 hover:border-weld-red py-4 text-zinc-400 hover:text-weld-red text-sm font-bold uppercase tracking-widest transition-colors"
+                                className="w-full border border-dashed border-zinc-300 hover:border-weld-red py-4 text-zinc-400 hover:text-weld-red text-sm font-bold uppercase tracking-widest transition-colors"
                             >
                                 + Add New Project
                             </button>
@@ -440,18 +446,18 @@ const AdminPortal = () => {
                                     className={`w-full text-left p-4 border transition-colors flex items-center justify-between gap-3 ${
                                         projectName === name && activeTab === 'editor'
                                             ? 'border-weld-red bg-weld-red/5'
-                                            : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600'
+                                            : 'border-zinc-200 bg-white hover:border-zinc-400 shadow-sm'
                                     }`}
                                 >
                                     <div className="min-w-0">
-                                        <p className="text-white font-bold text-sm truncate">{displayName(name)}</p>
+                                        <p className="text-zinc-900 font-bold text-sm truncate">{displayName(name)}</p>
                                         {drafts.includes(name) && (
-                                            <p className="text-amber-400 text-[10px] uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                            <p className="text-amber-500 text-[10px] uppercase tracking-widest mt-0.5 flex items-center gap-1">
                                                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />Unsaved changes
                                             </p>
                                         )}
                                     </div>
-                                    <span className="text-zinc-500 text-xs shrink-0">Edit →</span>
+                                    <span className="text-zinc-400 text-xs shrink-0">Edit →</span>
                                 </motion.button>
                             ))
                         }
@@ -460,12 +466,12 @@ const AdminPortal = () => {
 
                 {/* ── EDITOR TAB ── */}
                 {activeTab === 'editor' && (
-                    <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-7">
+                    <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-10">
 
                         {!currentBranch && (
-                            <div className="border border-zinc-700 bg-zinc-900 p-4 text-center">
-                                <p className="text-zinc-400 text-sm">
-                                    You're in <strong className="text-white">read-only mode</strong>. Tap <strong className="text-white">Start Editing</strong> above to make changes.
+                            <div className="border border-zinc-200 bg-zinc-50 p-5 text-center">
+                                <p className="text-zinc-500 text-sm">
+                                    You're in <strong className="text-zinc-900">read-only mode</strong>. Tap <strong className="text-zinc-900">Start Editing</strong> above to make changes.
                                 </p>
                             </div>
                         )}
@@ -473,12 +479,10 @@ const AdminPortal = () => {
                         {/* Section: Job Details */}
                         <div>
                             <SectionHeader label="Job Details" />
-                            <div className="space-y-4">
-
-                                {/* Job Title */}
+                            <div className="space-y-5">
                                 <div>
-                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
-                                        Job Title <span className="text-zinc-600 font-normal">(shown on your website)</span>
+                                    <label className="block text-zinc-600 text-xs font-bold mb-2">
+                                        Job Title <span className="text-zinc-400 font-normal">(shown on your website)</span>
                                     </label>
                                     <input
                                         type="text"
@@ -486,17 +490,16 @@ const AdminPortal = () => {
                                         onChange={e => setTitle(e.target.value)}
                                         disabled={!currentBranch}
                                         placeholder="e.g. Custom Driveway Gate, Structural Repair, Boat Trailer…"
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
                                     />
                                     {projectName && (
-                                        <p className="text-zinc-700 text-[10px] mt-1 font-mono">Folder: {projectName}</p>
+                                        <p className="text-zinc-400 text-[10px] mt-1 font-mono">Folder: {projectName}</p>
                                     )}
                                 </div>
 
-                                {/* Client */}
                                 <div>
-                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
-                                        Client Name <span className="text-zinc-600 font-normal">(optional)</span>
+                                    <label className="block text-zinc-600 text-xs font-bold mb-2">
+                                        Client Name <span className="text-zinc-400 font-normal">(optional)</span>
                                     </label>
                                     <input
                                         type="text"
@@ -504,14 +507,13 @@ const AdminPortal = () => {
                                         onChange={e => setClient(e.target.value)}
                                         disabled={!currentBranch}
                                         placeholder="e.g. Smith Family"
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
                                     />
                                 </div>
 
-                                {/* Description */}
                                 <div>
-                                    <label className="block text-zinc-400 text-xs font-bold mb-1.5">
-                                        About This Job <span className="text-zinc-600 font-normal">(optional — describe the work, materials, etc.)</span>
+                                    <label className="block text-zinc-600 text-xs font-bold mb-2">
+                                        About This Job <span className="text-zinc-400 font-normal">(optional — describe the work, materials, etc.)</span>
                                     </label>
                                     <textarea
                                         value={description}
@@ -519,7 +521,7 @@ const AdminPortal = () => {
                                         disabled={!currentBranch}
                                         placeholder="What did you build? What materials did you use? What made this job stand out?"
                                         rows={4}
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors resize-none"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors resize-none"
                                     />
                                 </div>
                             </div>
@@ -529,26 +531,24 @@ const AdminPortal = () => {
                         <div>
                             <SectionHeader label="Job Type / Tags" sublabel="Customers can filter the portfolio by these" />
 
-                            {/* Preset tags */}
-                            <div className="flex flex-wrap gap-2 mb-3">
+                            <div className="flex flex-wrap gap-2 mb-4">
                                 {PRESET_TAGS.map(tag => (
                                     <button
                                         key={tag}
                                         onClick={() => currentBranch && toggleTag(tag)}
                                         disabled={!currentBranch}
-                                        className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors border ${
+                                        className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors border ${
                                             tags.includes(tag)
                                                 ? 'bg-weld-red border-weld-red text-white'
-                                                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                                                : 'border-zinc-300 text-zinc-500 hover:border-zinc-500 hover:text-zinc-700'
                                         } disabled:opacity-40 disabled:cursor-default`}
                                     >
                                         {tag}
                                     </button>
                                 ))}
 
-                                {/* Custom tags (not in presets) */}
                                 {tags.filter(t => !PRESET_TAGS.includes(t)).map(tag => (
-                                    <span key={tag} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-widest bg-weld-red border border-weld-red text-white">
+                                    <span key={tag} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest bg-weld-red border border-weld-red text-white">
                                         {tag}
                                         {currentBranch && (
                                             <button onClick={() => setTags(prev => prev.filter(t => t !== tag))} className="hover:opacity-70 transition-opacity">
@@ -559,64 +559,58 @@ const AdminPortal = () => {
                                 ))}
                             </div>
 
-                            {/* Add custom tag */}
-                            {currentBranch && (
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={customTagInput}
-                                        onChange={e => setCustomTagInput(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && addCustomTag()}
-                                        placeholder="Add a custom tag…"
-                                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white px-3 py-2 text-xs focus:outline-none focus:border-weld-red transition-colors"
-                                    />
-                                    <button
-                                        onClick={addCustomTag}
-                                        disabled={!customTagInput.trim()}
-                                        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold uppercase tracking-widest disabled:opacity-40 transition-colors"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
-                            )}
-
-                            {!currentBranch && tags.length === 0 && (
-                                <p className="text-zinc-700 text-xs">No tags set.</p>
-                            )}
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={customTagInput}
+                                    onChange={e => setCustomTagInput(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && addCustomTag()}
+                                    placeholder={currentBranch ? "Add a custom tag…" : "Start Editing to add custom tags"}
+                                    disabled={!currentBranch}
+                                    className="flex-1 bg-white border border-zinc-300 text-zinc-900 px-3 py-2.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40 disabled:cursor-default transition-colors"
+                                />
+                                <button
+                                    onClick={addCustomTag}
+                                    disabled={!currentBranch || !customTagInput.trim()}
+                                    className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-widest disabled:opacity-40 disabled:cursor-default transition-colors"
+                                >
+                                    Add
+                                </button>
+                            </div>
                         </div>
 
                         {/* Section: Photos */}
                         <div>
                             <SectionHeader
                                 label={`Photos${images.length > 0 ? ` (${images.length})` : ''}`}
-                                action={<button onClick={() => loadProject(projectName)} className="text-zinc-600 hover:text-zinc-400 text-xs uppercase tracking-wider transition-colors">Refresh</button>}
+                                action={<button onClick={() => loadProject(projectName)} className="text-zinc-400 hover:text-zinc-600 text-xs uppercase tracking-wider transition-colors">Refresh</button>}
                             />
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 {images.map(img => {
                                     const imageID = img.name.replace('.webp', '');
                                     return (
-                                        <div key={img.sha} className="border border-zinc-800 bg-zinc-900">
+                                        <div key={img.sha} className="border border-zinc-200 bg-white shadow-sm">
                                             <div className="relative">
-                                                <img src={img.download_url} className="w-full h-28 object-cover" alt="" />
+                                                <img src={img.download_url} className="w-full h-32 object-cover" alt="" />
                                                 {currentBranch && (
                                                     <button
                                                         onClick={() => deleteImage(img)}
-                                                        className="absolute top-1.5 right-1.5 bg-black/70 hover:bg-weld-red text-white w-7 h-7 flex items-center justify-center transition-colors"
+                                                        className="absolute top-1.5 right-1.5 bg-black/60 hover:bg-weld-red text-white w-7 h-7 flex items-center justify-center transition-colors"
                                                         aria-label="Remove photo"
                                                     >
                                                         <X size={14} />
                                                     </button>
                                                 )}
                                             </div>
-                                            <div className="p-2">
+                                            <div className="p-2.5">
                                                 <input
                                                     type="text"
                                                     value={altTexts[imageID] || ''}
                                                     onChange={e => setAltTexts(prev => ({ ...prev, [imageID]: e.target.value }))}
                                                     placeholder="Photo description…"
                                                     disabled={!currentBranch}
-                                                    className="w-full bg-zinc-950 border border-zinc-700 text-zinc-300 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40"
+                                                    className="w-full bg-zinc-50 border border-zinc-200 text-zinc-700 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40"
                                                 />
                                             </div>
                                         </div>
@@ -624,16 +618,16 @@ const AdminPortal = () => {
                                 })}
 
                                 {currentBranch && (
-                                    <label className="border-2 border-dashed border-zinc-700 hover:border-weld-red h-[7.75rem] flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                                    <label className="border-2 border-dashed border-zinc-300 hover:border-weld-red h-[8.5rem] flex flex-col items-center justify-center cursor-pointer transition-colors group">
                                         <span className="text-3xl mb-1.5">📷</span>
-                                        <span className="text-zinc-500 group-hover:text-weld-red text-xs uppercase tracking-widest font-bold transition-colors">Add Photo</span>
+                                        <span className="text-zinc-400 group-hover:text-weld-red text-xs uppercase tracking-widest font-bold transition-colors">Add Photo</span>
                                         <input type="file" accept="image/*" onChange={e => handleUpload(e.target.files[0])} className="hidden" />
                                     </label>
                                 )}
 
                                 {images.length === 0 && !currentBranch && (
-                                    <div className="col-span-2 border border-zinc-800 p-8 text-center">
-                                        <p className="text-zinc-600 text-sm">No photos yet</p>
+                                    <div className="col-span-2 sm:col-span-3 border border-zinc-200 p-10 text-center">
+                                        <p className="text-zinc-400 text-sm">No photos yet</p>
                                     </div>
                                 )}
                             </div>
@@ -645,11 +639,11 @@ const AdminPortal = () => {
                                 <motion.button
                                     whileTap={{ scale: 0.98 }}
                                     onClick={saveProject}
-                                    className="w-full bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors"
+                                    className="w-full bg-zinc-900 hover:bg-zinc-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors"
                                 >
                                     Save Changes
                                 </motion.button>
-                                <p className="text-zinc-600 text-xs text-center mt-2">
+                                <p className="text-zinc-400 text-xs text-center mt-2">
                                     Saved here — tap Publish above when you're ready to go live.
                                 </p>
                             </div>
@@ -663,23 +657,23 @@ const AdminPortal = () => {
             <AnimatePresence>
             {confirmPublish && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setConfirmPublish(false)} />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmPublish(false)} />
                     <motion.div
                         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
-                        className="relative z-10 w-full max-w-sm bg-zinc-900 border border-zinc-700 p-8"
+                        className="relative z-10 w-full max-w-sm bg-white border border-zinc-200 shadow-xl p-8"
                     >
-                        <h2 className="text-2xl font-black uppercase italic text-white mb-2">Publish to Website?</h2>
-                        <p className="text-zinc-400 text-sm mb-2 leading-relaxed">
-                            All saved changes will go live on <strong className="text-white">arcwrightwelding.com</strong> in about 1 minute.
+                        <h2 className="text-2xl font-black uppercase italic text-zinc-900 mb-2">Publish to Website?</h2>
+                        <p className="text-zinc-500 text-sm mb-2 leading-relaxed">
+                            All saved changes will go live on <strong className="text-zinc-900">arcwrightwelding.com</strong> in about 1 minute.
                         </p>
                         {drafts.length > 0 && (
-                            <p className="text-amber-400 text-xs mb-6 uppercase tracking-widest">
+                            <p className="text-amber-500 text-xs mb-6 uppercase tracking-widest">
                                 {drafts.length} project{drafts.length > 1 ? 's' : ''} will be updated
                             </p>
                         )}
                         {drafts.length === 0 && <div className="mb-6" />}
                         <div className="flex gap-3">
-                            <button onClick={() => setConfirmPublish(false)} className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white font-bold py-3 uppercase tracking-widest text-xs transition-colors">
+                            <button onClick={() => setConfirmPublish(false)} className="flex-1 border border-zinc-300 hover:border-zinc-500 text-zinc-500 hover:text-zinc-900 font-bold py-3 uppercase tracking-widest text-xs transition-colors">
                                 Cancel
                             </button>
                             <button onClick={commitToMerge} className="flex-1 bg-weld-red hover:bg-red-700 text-white font-bold py-3 uppercase tracking-widest text-xs transition-colors">
@@ -694,12 +688,11 @@ const AdminPortal = () => {
     );
 };
 
-// Small helper component for section headers inside the editor
 const SectionHeader = ({ label, sublabel, action }) => (
-    <div className="flex items-center gap-3 mb-4">
-        <span className="text-zinc-400 text-xs uppercase tracking-widest font-bold shrink-0">{label}</span>
-        {sublabel && <span className="text-zinc-700 text-[10px] shrink-0">{sublabel}</span>}
-        <div className="flex-1 h-px bg-zinc-800" />
+    <div className="flex items-center gap-3 mb-5">
+        <span className="text-zinc-500 text-xs uppercase tracking-widest font-bold shrink-0">{label}</span>
+        {sublabel && <span className="text-zinc-400 text-[10px] shrink-0">{sublabel}</span>}
+        <div className="flex-1 h-px bg-zinc-200" />
         {action}
     </div>
 );

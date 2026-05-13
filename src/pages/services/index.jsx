@@ -24,6 +24,8 @@ const services = [
 const Services = () => {
     return (
         <section id="services" className="py-20 px-6">
+            <title>Welding & Fabrication Services | ArcWright Welding | Jacksonville, FL</title>
+            <meta name="description" content="Structural steel fabrication, TIG/MIG welding, custom metal work, and mobile on-site repair. ArcWright serves Jacksonville and surrounding Florida communities." />
             <div className="max-w-7xl mx-auto">
 
                 <div className="mb-16 border-b border-zinc-200 pb-8 flex justify-between items-end">

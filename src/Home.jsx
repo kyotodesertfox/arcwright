@@ -4,6 +4,8 @@ import LogoIcon from './assets/logo.svg';
 const Home = () => {
     return (
         <section className="py-16 md:py-24 px-6 overflow-hidden">
+            <title>ArcWright Welding | Custom Fabrication & Structural Steel | Jacksonville, FL</title>
+            <meta name="description" content="ArcWright Welding specializes in structural steel, TIG/MIG welding, custom fabrication, and mobile on-site repair across Jacksonville, FL. Free estimates — call 904-914-0648." />
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16">
 
                 {/* Text */}
