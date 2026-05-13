@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Shown until the welder uploads real work via the admin panel
+const ITEMS_PER_PAGE = 9;
+
 const DEMO_PROJECTS = [
     {
         id: 'demo-1',
@@ -11,7 +12,6 @@ const DEMO_PROJECTS = [
         client: null,
         description: "Full-depth penetration welds for a multi-story commercial unit. Inspected and cleared for load-bearing capacity.",
         images: [{ url: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=800", alt: "Structural steel frame" }],
-        height: "h-[420px]",
     },
     {
         id: 'demo-2',
@@ -20,7 +20,6 @@ const DEMO_PROJECTS = [
         client: null,
         description: "High-pressure manifold fabrication utilizing multi-pass TIG root and stick cap. All joints meet ASME B31.3 process piping standards.",
         images: [{ url: "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&q=80&w=800", alt: "Pipe manifold weld" }],
-        height: "h-[560px]",
     },
     {
         id: 'demo-3',
@@ -29,7 +28,6 @@ const DEMO_PROJECTS = [
         client: null,
         description: "Structural steel installation in a high-visibility residential setting. Hidden weld points maintain design aesthetics without compromising structural safety.",
         images: [{ url: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=800", alt: "Architectural rigging" }],
-        height: "h-[420px]",
     },
     {
         id: 'demo-4',
@@ -38,11 +36,8 @@ const DEMO_PROJECTS = [
         client: null,
         description: "Thin-gauge aluminum welding for custom marine components. Stack-of-dimes bead consistency for a showroom finish.",
         images: [{ url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800", alt: "Precision TIG welding" }],
-        height: "h-[480px]",
     },
 ];
-
-const CARD_HEIGHTS = ['h-[420px]', 'h-[560px]', 'h-[420px]', 'h-[480px]'];
 
 const Portfolio = () => {
     const [projects, setProjects] = useState([]);
@@ -50,10 +45,16 @@ const Portfolio = () => {
     const [isDemo, setIsDemo] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [carouselIndex, setCarouselIndex] = useState(0);
+    const [currentPage, setCurrentPage] = useState(0);
+    const gridRef = useRef(null);
 
-    useEffect(() => {
-        loadProjects();
-    }, []);
+    const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE);
+    const visibleProjects = projects.slice(
+        currentPage * ITEMS_PER_PAGE,
+        (currentPage + 1) * ITEMS_PER_PAGE
+    );
+
+    useEffect(() => { loadProjects(); }, []);
 
     const loadProjects = async () => {
         setLoading(true);
@@ -73,7 +74,6 @@ const Portfolio = () => {
                 }
             }
         } catch {}
-        // No admin projects yet — show demo content
         setProjects(DEMO_PROJECTS);
         setIsDemo(true);
         setLoading(false);
@@ -85,10 +85,6 @@ const Portfolio = () => {
             if (!res.ok) return null;
             const meta = await res.json();
             const imageEntries = Object.entries(meta.images || {});
-            const images = imageEntries.map(([key, alt]) => ({
-                url: `/projects/${slug}/${key}.webp`,
-                alt: alt || meta.title || slug,
-            }));
             return {
                 id: slug,
                 slug,
@@ -96,17 +92,20 @@ const Portfolio = () => {
                 client: meta.client || null,
                 category: meta.client ? 'Custom Work' : 'Fabrication',
                 description: meta.description || '',
-                images,
+                images: imageEntries.map(([key, alt]) => ({
+                    url: `/projects/${slug}/${key}.webp`,
+                    alt: alt || meta.title || slug,
+                })),
             };
-        } catch {
-            return null;
-        }
+        } catch { return null; }
     };
 
-    const openProject = (id) => {
-        setSelectedId(id);
-        setCarouselIndex(0);
+    const goToPage = (page) => {
+        setCurrentPage(page);
+        gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
+
+    const openProject = (id) => { setSelectedId(id); setCarouselIndex(0); };
 
     const selectedProject = projects.find(p => p.id === selectedId);
 
@@ -141,16 +140,16 @@ const Portfolio = () => {
                     </p>
                 </motion.div>
 
-                {/* Loading state */}
+                {/* Loading skeleton */}
                 {loading && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="h-[420px] bg-zinc-100 animate-pulse" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="h-[340px] bg-zinc-100 animate-pulse" />
                         ))}
                     </div>
                 )}
 
-                {/* Demo banner */}
+                {/* Demo notice */}
                 {!loading && isDemo && (
                     <div className="mb-8 border-l-4 border-zinc-300 pl-4 py-2">
                         <p className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
@@ -161,50 +160,87 @@ const Portfolio = () => {
 
                 {/* Gallery grid */}
                 {!loading && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {projects.map((project, index) => (
-                            <motion.div
-                                layoutId={`project-${project.id}`}
-                                key={project.id}
-                                onClick={() => openProject(project.id)}
-                                initial={{ opacity: 0, y: 40 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.6, delay: (index % 2) * 0.15, ease: [0.25, 1, 0.5, 1] }}
-                                className={`${project.height || CARD_HEIGHTS[index % 4]} group relative overflow-hidden cursor-pointer border-b-4 border-transparent hover:border-weld-red transition-all duration-300 shadow-sm hover:shadow-xl`}
-                            >
-                                {/* Image */}
-                                {project.images[0] ? (
-                                    <img
-                                        src={project.images[0].url}
-                                        alt={project.images[0].alt}
-                                        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 grayscale group-hover:grayscale-0 group-hover:scale-105"
-                                    />
-                                ) : (
-                                    <div className="absolute inset-0 bg-zinc-200 flex items-center justify-center">
-                                        <span className="text-zinc-400 text-xs uppercase tracking-widest">No photo</span>
-                                    </div>
-                                )}
-
-                                {/* Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent p-8 flex flex-col justify-end">
-                                    <span className="text-weld-red font-mono text-xs mb-2 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">
-                                        {project.category}
-                                        {project.images.length > 1 && (
-                                            <span className="ml-3 text-zinc-500">· {project.images.length} photos</span>
-                                        )}
-                                    </span>
-                                    <h3 className="text-2xl font-black text-white uppercase italic leading-tight">
-                                        {project.title}
-                                    </h3>
-                                    {project.client && (
-                                        <p className="text-zinc-400 text-xs uppercase tracking-widest mt-1">{project.client}</p>
+                    <>
+                        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {visibleProjects.map((project, index) => (
+                                <motion.div
+                                    layoutId={`project-${project.id}`}
+                                    key={project.id}
+                                    onClick={() => openProject(project.id)}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: "-40px" }}
+                                    transition={{ duration: 0.5, delay: (index % 3) * 0.1, ease: [0.25, 1, 0.5, 1] }}
+                                    className="h-[340px] group relative overflow-hidden cursor-pointer border-b-4 border-transparent hover:border-weld-red transition-all duration-300 shadow-sm hover:shadow-xl"
+                                >
+                                    {project.images[0] ? (
+                                        <img
+                                            src={project.images[0].url}
+                                            alt={project.images[0].alt}
+                                            className="absolute inset-0 w-full h-full object-cover transition-all duration-700 grayscale group-hover:grayscale-0 group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 bg-zinc-200 flex items-center justify-center">
+                                            <span className="text-zinc-400 text-xs uppercase tracking-widest">No photo</span>
+                                        </div>
                                     )}
-                                    <div className="w-8 h-0.5 bg-weld-silver mt-4 group-hover:w-24 transition-all duration-500" />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent p-6 flex flex-col justify-end">
+                                        <span className="text-weld-red font-mono text-xs mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">
+                                            {project.category}
+                                            {project.images.length > 1 && (
+                                                <span className="ml-3 text-zinc-500">· {project.images.length} photos</span>
+                                            )}
+                                        </span>
+                                        <h3 className="text-xl font-black text-white uppercase italic leading-tight">
+                                            {project.title}
+                                        </h3>
+                                        {project.client && (
+                                            <p className="text-zinc-400 text-xs uppercase tracking-widest mt-1">{project.client}</p>
+                                        )}
+                                        <div className="w-6 h-0.5 bg-weld-silver mt-3 group-hover:w-20 transition-all duration-500" />
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-2 mt-12">
+                                <button
+                                    onClick={() => goToPage(currentPage - 1)}
+                                    disabled={currentPage === 0}
+                                    className="w-10 h-10 flex items-center justify-center border border-zinc-300 text-zinc-600 hover:border-weld-red hover:text-weld-red disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => goToPage(i)}
+                                        className={`w-10 h-10 flex items-center justify-center font-bold text-sm transition-colors ${
+                                            i === currentPage
+                                                ? 'bg-weld-red text-white'
+                                                : 'border border-zinc-300 text-zinc-600 hover:border-weld-red hover:text-weld-red'
+                                        }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => goToPage(currentPage + 1)}
+                                    disabled={currentPage === totalPages - 1}
+                                    className="w-10 h-10 flex items-center justify-center border border-zinc-300 text-zinc-600 hover:border-weld-red hover:text-weld-red disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -212,7 +248,6 @@ const Portfolio = () => {
             <AnimatePresence>
                 {selectedId && selectedProject && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
-                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -221,7 +256,6 @@ const Portfolio = () => {
                             className="absolute inset-0 bg-black/90 backdrop-blur-sm"
                         />
 
-                        {/* Modal card */}
                         <motion.div
                             layoutId={`project-${selectedId}`}
                             className="bg-zinc-900 w-full max-w-4xl overflow-hidden border border-zinc-800 flex flex-col md:flex-row relative z-10 max-h-[90vh]"
@@ -243,19 +277,12 @@ const Portfolio = () => {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Carousel controls */}
                                 {selectedProject.images.length > 1 && (
                                     <>
-                                        <button
-                                            onClick={prevImage}
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-weld-red text-white p-2 transition-colors"
-                                        >
+                                        <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-weld-red text-white p-2 transition-colors">
                                             <ChevronLeft size={20} />
                                         </button>
-                                        <button
-                                            onClick={nextImage}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-weld-red text-white p-2 transition-colors"
-                                        >
+                                        <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-weld-red text-white p-2 transition-colors">
                                             <ChevronRight size={20} />
                                         </button>
                                         <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">

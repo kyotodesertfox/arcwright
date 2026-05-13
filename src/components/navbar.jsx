@@ -27,14 +27,6 @@ const Navbar = () => {
                     <span className="text-zinc-400 text-base font-medium not-italic tracking-normal">WELDING</span>
                 </Link>
 
-                <a
-                    href="tel:904-914-0648"
-                    className="hidden lg:flex items-center gap-2 text-zinc-300 hover:text-weld-red transition-all duration-300 font-mono font-bold text-lg -skew-x-[15deg] tracking-tighter border-l border-zinc-700 pl-8"
-                >
-                    Call For Estimates
-                    <span className="w-2 h-2 bg-weld-red rounded-full animate-pulse" /> 904-914-0648
-                </a>
-
                 {/* Desktop Links */}
                 <div className="hidden md:flex space-x-8">
                     {navLinks.map((link) => (
