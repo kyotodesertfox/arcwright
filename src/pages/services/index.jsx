@@ -1,29 +1,33 @@
+import { Building2, Zap, Ruler, Truck } from 'lucide-react';
+
 const services = [
     {
         title: "Structural Steel",
         description: "Heavy-duty fabrication for residential and commercial frames. Built to exceed engineering standards.",
-        icon: "🏗️"
+        Icon: Building2,
     },
     {
         title: "TIG / MIG Welding",
         description: "Precision beads on aluminum, stainless steel, and mild steel for custom parts and repairs.",
-        icon: "⚡"
+        Icon: Zap,
     },
     {
         title: "Custom Fabrication",
         description: "From ornate gates to specialized brackets. You provide the specs, we provide the steel.",
-        icon: "📐"
+        Icon: Ruler,
     },
     {
         title: "On-Site Repair",
         description: "Mobile welding services for equipment repair and structural fixes directly at your location.",
-        icon: "🚛"
+        Icon: Truck,
     }
 ];
 
 const Services = () => {
     return (
         <section id="services" className="py-20 px-6">
+            <title>Welding & Fabrication Services | ArcWright Welding | Jacksonville, FL</title>
+            <meta name="description" content="Structural steel fabrication, TIG/MIG welding, custom metal work, and mobile on-site repair. ArcWright serves Jacksonville and surrounding Florida communities." />
             <div className="max-w-7xl mx-auto">
 
                 <div className="mb-16 border-b border-zinc-200 pb-8 flex justify-between items-end">
@@ -39,19 +43,19 @@ const Services = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-1">
-                    {services.map((service, index) => (
+                    {services.map(({ title, description, Icon }, index) => (
                         <div
                             key={index}
                             className="bg-white border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:border-weld-red transition-all group"
                         >
-                            <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                {service.icon}
+                            <div className="mb-4 text-zinc-400 group-hover:text-weld-red group-hover:scale-110 transition-all duration-300 w-8 h-8">
+                                <Icon size={32} strokeWidth={1.5} />
                             </div>
                             <h4 className="text-xl font-bold uppercase text-zinc-900 mb-3 group-hover:text-weld-red transition-colors">
-                                {service.title}
+                                {title}
                             </h4>
                             <p className="text-zinc-600 text-sm leading-relaxed">
-                                {service.description}
+                                {description}
                             </p>
                         </div>
                     ))}
