@@ -139,8 +139,6 @@ const Portfolio = () => {
 
     return (
         <section className="py-24 px-6">
-            <title>Project Portfolio | ArcWright Welding | Jacksonville, FL</title>
-            <meta name="description" content="Browse ArcWright's portfolio of structural steel, TIG/MIG welding, marine fabrication, and custom metalwork projects across Jacksonville, FL." />
             <div className="max-w-7xl mx-auto">
 
                 {/* Section Header */}

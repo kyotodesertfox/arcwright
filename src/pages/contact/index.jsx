@@ -52,8 +52,6 @@ const ContactPage = () => {
 
     return (
         <div className="max-w-4xl mx-auto py-16 px-4">
-            <title>Free Estimate | Request a Quote | ArcWright Welding</title>
-            <meta name="description" content="Request a free welding estimate from ArcWright. Submit your project specs for structural steel, custom fabrication, or on-site repair in Jacksonville, FL." />
             <header className="mb-12">
                 <h1 className="text-5xl font-black italic tracking-tighter uppercase text-zinc-900">
                     Project <span className="text-weld-red">Intake</span>

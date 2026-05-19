@@ -22,9 +22,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-package-lock.json
-*kate-swp*
-
 dist
 dist-ssr
 *.local
