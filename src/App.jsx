@@ -28,8 +28,8 @@ function App() {
     <Route path="/services" element={<Services />} />
     <Route path="/portfolio" element={<Portfolio />} />
     <Route path="/contact" element={<Contact />} />
-    <Route path="*" element={<NotFound />} />
     <Route path="/admin" element={<AdminPortal />} />
+    <Route path="*" element={<NotFound />} />
     </Routes>
     </Layout>
   );
