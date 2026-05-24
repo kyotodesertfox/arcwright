@@ -95,6 +95,8 @@ const Portfolio = () => {
             const res = await fetch(`/projects/${slug}/metadata.json`);
             if (!res.ok) return null;
             const meta = await res.json();
+            // Skip projects that haven't been named yet (title still equals the folder slug)
+            if (!meta.title || meta.title === slug) return null;
             const imageEntries = Object.entries(meta.images || {});
             return {
                 id: slug,

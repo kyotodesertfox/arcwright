@@ -354,49 +354,52 @@ const AdminPortal = () => {
                 </div>
             </div>
 
+            {/* Staging Banner — sticky below header when editing */}
+            {currentBranch && (
+                <div className="sticky top-12 z-30 bg-amber-50 border-b border-amber-200 px-4 py-3">
+                    <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse flex-shrink-0" />
+                            <p className="text-zinc-800 text-xs sm:text-sm truncate">
+                                {drafts.length > 0
+                                    ? <><strong className="text-zinc-900">{drafts.length} project{drafts.length > 1 ? 's' : ''} staged</strong><span> — not live yet. Publish when you're done for the day.</span></>
+                                    : <>Changes are <strong>staged, not live</strong>. Save your projects, then publish when you're done.</>
+                                }
+                            </p>
+                        </div>
+                        <button onClick={() => setConfirmPublish(true)} className="shrink-0 bg-weld-red hover:bg-red-700 text-white font-bold py-2.5 px-5 uppercase tracking-widest text-xs transition-colors">
+                            Publish to Website
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
-                {/* Editing Mode Card */}
-                {!currentBranch ? (
+                {/* Start Editing Card — only shown before editing begins */}
+                {!currentBranch && (
                     <div className="bg-zinc-50 border border-zinc-200 p-8">
                         <p className="text-zinc-900 font-bold text-base mb-1">Ready to make changes?</p>
-                        <p className="text-zinc-500 text-sm mb-8 leading-relaxed">
-                            Tap <strong className="text-zinc-900">Start Editing</strong> to open a workspace. Changes won't go live until you tap <strong className="text-zinc-900">Publish to Website</strong>.
+                        <p className="text-zinc-700 text-sm mb-8 leading-relaxed">
+                            Tap <strong className="text-zinc-900">Start Editing</strong> to begin. Nothing goes live until you choose to <strong className="text-zinc-900">Publish to Website</strong> — so you can take your time and update as many projects as you want first.
                         </p>
                         <div className="space-y-4 mb-8 border-t border-zinc-200 pt-6">
                             {[
-                                { n: '1', title: 'Start Editing',        detail: 'Opens a safe workspace for your changes' },
+                                { n: '1', title: 'Start Editing',        detail: 'Opens a safe staging area — nothing changes on your site yet' },
                                 { n: '2', title: 'Update your projects', detail: 'Set job titles, tags, descriptions, and photos' },
-                                { n: '3', title: 'Publish to Website',   detail: 'Everything goes live in about 1 minute' },
+                                { n: '3', title: 'Publish to Website',   detail: 'When you\'re done for the day — everything goes live in ~1 minute' },
                             ].map(s => (
                                 <div key={s.n} className="flex items-start gap-3">
                                     <span className="w-6 h-6 bg-weld-red text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
                                     <div>
                                         <p className="text-zinc-800 text-sm font-bold">{s.title}</p>
-                                        <p className="text-zinc-400 text-xs">{s.detail}</p>
+                                        <p className="text-zinc-600 text-xs">{s.detail}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                         <button onClick={branchID} className="w-full bg-zinc-900 hover:bg-zinc-700 text-white font-bold py-4 uppercase tracking-widest text-sm transition-colors">
                             Start Editing
-                        </button>
-                    </div>
-                ) : (
-                    <div className="bg-amber-50 border border-amber-200 p-6 flex items-start justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-                                <p className="text-amber-600 text-sm font-bold uppercase tracking-widest">Editing Mode Active</p>
-                            </div>
-                            <p className="text-zinc-500 text-sm leading-relaxed">
-                                {drafts.length > 0
-                                    ? `${drafts.length} project${drafts.length > 1 ? 's' : ''} with unsaved changes — publish when you're done.`
-                                    : 'Make your changes below, then publish to update your website.'}
-                            </p>
-                        </div>
-                        <button onClick={() => setConfirmPublish(true)} className="shrink-0 bg-weld-red hover:bg-red-700 text-white font-bold py-3 px-5 uppercase tracking-widest text-xs transition-colors">
-                            Publish
                         </button>
                     </div>
                 )}
@@ -469,10 +472,13 @@ const AdminPortal = () => {
                     <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-10">
 
                         {!currentBranch && (
-                            <div className="border border-zinc-200 bg-zinc-50 p-5 text-center">
-                                <p className="text-zinc-500 text-sm">
-                                    You're in <strong className="text-zinc-900">read-only mode</strong>. Tap <strong className="text-zinc-900">Start Editing</strong> above to make changes.
+                            <div className="border border-zinc-200 bg-zinc-50 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <p className="text-zinc-700 text-sm text-center sm:text-left">
+                                    You're in <strong className="text-zinc-900">read-only mode</strong> — tap Start Editing to make changes.
                                 </p>
+                                <button onClick={branchID} className="shrink-0 bg-zinc-900 hover:bg-zinc-700 text-white font-bold py-3 px-6 uppercase tracking-widest text-xs transition-colors">
+                                    Start Editing
+                                </button>
                             </div>
                         )}
 
@@ -482,7 +488,7 @@ const AdminPortal = () => {
                             <div className="space-y-5">
                                 <div>
                                     <label className="block text-zinc-600 text-xs font-bold mb-2">
-                                        Job Title <span className="text-zinc-400 font-normal">(shown on your website)</span>
+                                        Job Title <span className="text-zinc-600 font-normal">(shown on your website)</span>
                                     </label>
                                     <input
                                         type="text"
@@ -490,7 +496,7 @@ const AdminPortal = () => {
                                         onChange={e => setTitle(e.target.value)}
                                         disabled={!currentBranch}
                                         placeholder="e.g. Custom Driveway Gate, Structural Repair, Boat Trailer…"
-                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-600 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
                                     />
                                     {projectName && (
                                         <p className="text-zinc-400 text-[10px] mt-1 font-mono">Folder: {projectName}</p>
@@ -499,7 +505,7 @@ const AdminPortal = () => {
 
                                 <div>
                                     <label className="block text-zinc-600 text-xs font-bold mb-2">
-                                        Client Name <span className="text-zinc-400 font-normal">(optional)</span>
+                                        Client Name <span className="text-zinc-600 font-normal">(optional)</span>
                                     </label>
                                     <input
                                         type="text"
@@ -507,13 +513,13 @@ const AdminPortal = () => {
                                         onChange={e => setClient(e.target.value)}
                                         disabled={!currentBranch}
                                         placeholder="e.g. Smith Family"
-                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-600 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-zinc-600 text-xs font-bold mb-2">
-                                        About This Job <span className="text-zinc-400 font-normal">(optional — describe the work, materials, etc.)</span>
+                                        About This Job <span className="text-zinc-600 font-normal">(optional — describe the work, materials, etc.)</span>
                                     </label>
                                     <textarea
                                         value={description}
@@ -521,7 +527,7 @@ const AdminPortal = () => {
                                         disabled={!currentBranch}
                                         placeholder="What did you build? What materials did you use? What made this job stand out?"
                                         rows={4}
-                                        className="w-full bg-white border border-zinc-300 text-zinc-900 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors resize-none"
+                                        className="w-full bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-600 px-4 py-3 text-sm focus:outline-none focus:border-weld-red disabled:opacity-40 transition-colors resize-none"
                                     />
                                 </div>
                             </div>
@@ -540,7 +546,7 @@ const AdminPortal = () => {
                                         className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors border ${
                                             tags.includes(tag)
                                                 ? 'bg-weld-red border-weld-red text-white'
-                                                : 'border-zinc-300 text-zinc-500 hover:border-zinc-500 hover:text-zinc-700'
+                                                : 'border-zinc-300 text-zinc-700 hover:border-zinc-600 hover:text-zinc-900'
                                         } disabled:opacity-40 disabled:cursor-default`}
                                     >
                                         {tag}
@@ -567,7 +573,7 @@ const AdminPortal = () => {
                                     onKeyDown={e => e.key === 'Enter' && addCustomTag()}
                                     placeholder={currentBranch ? "Add a custom tag…" : "Start Editing to add custom tags"}
                                     disabled={!currentBranch}
-                                    className="flex-1 bg-white border border-zinc-300 text-zinc-900 px-3 py-2.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40 disabled:cursor-default transition-colors"
+                                    className="flex-1 bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-600 px-3 py-2.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40 disabled:cursor-default transition-colors"
                                 />
                                 <button
                                     onClick={addCustomTag}
@@ -583,7 +589,7 @@ const AdminPortal = () => {
                         <div>
                             <SectionHeader
                                 label={`Photos${images.length > 0 ? ` (${images.length})` : ''}`}
-                                action={<button onClick={() => loadProject(projectName)} className="text-zinc-400 hover:text-zinc-600 text-xs uppercase tracking-wider transition-colors">Refresh</button>}
+                                action={<button onClick={() => loadProject(projectName)} className="text-zinc-500 hover:text-zinc-800 text-xs uppercase tracking-wider transition-colors">Refresh</button>}
                             />
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -610,7 +616,7 @@ const AdminPortal = () => {
                                                     onChange={e => setAltTexts(prev => ({ ...prev, [imageID]: e.target.value }))}
                                                     placeholder="Photo description…"
                                                     disabled={!currentBranch}
-                                                    className="w-full bg-zinc-50 border border-zinc-200 text-zinc-700 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40"
+                                                    className="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 placeholder:text-zinc-600 px-2 py-1.5 text-xs focus:outline-none focus:border-weld-red disabled:opacity-40"
                                                 />
                                             </div>
                                         </div>
@@ -620,14 +626,14 @@ const AdminPortal = () => {
                                 {currentBranch && (
                                     <label className="border-2 border-dashed border-zinc-300 hover:border-weld-red h-[8.5rem] flex flex-col items-center justify-center cursor-pointer transition-colors group">
                                         <span className="text-3xl mb-1.5">📷</span>
-                                        <span className="text-zinc-400 group-hover:text-weld-red text-xs uppercase tracking-widest font-bold transition-colors">Add Photo</span>
+                                        <span className="text-zinc-600 group-hover:text-weld-red text-xs uppercase tracking-widest font-bold transition-colors">Add Photo</span>
                                         <input type="file" accept="image/*" onChange={e => handleUpload(e.target.files[0])} className="hidden" />
                                     </label>
                                 )}
 
                                 {images.length === 0 && !currentBranch && (
                                     <div className="col-span-2 sm:col-span-3 border border-zinc-200 p-10 text-center">
-                                        <p className="text-zinc-400 text-sm">No photos yet</p>
+                                        <p className="text-zinc-600 text-sm">No photos yet</p>
                                     </div>
                                 )}
                             </div>
@@ -643,8 +649,8 @@ const AdminPortal = () => {
                                 >
                                     Save Changes
                                 </motion.button>
-                                <p className="text-zinc-400 text-xs text-center mt-2">
-                                    Saved here — tap Publish above when you're ready to go live.
+                                <p className="text-zinc-600 text-xs text-center mt-2">
+                                    Saved to staging — use <strong className="text-zinc-700">Publish to Website</strong> at the top when you're done for the day.
                                 </p>
                             </div>
                         )}
@@ -664,7 +670,7 @@ const AdminPortal = () => {
                     >
                         <h2 className="text-2xl font-black uppercase italic text-zinc-900 mb-2">Publish to Website?</h2>
                         <p className="text-zinc-500 text-sm mb-2 leading-relaxed">
-                            All saved changes will go live on <strong className="text-zinc-900">arcwrightwelding.com</strong> in about 1 minute.
+                            All staged changes will go live on <strong className="text-zinc-900">arcwrightwelding.com</strong> in about 1 minute. This is the final step.
                         </p>
                         {drafts.length > 0 && (
                             <p className="text-amber-500 text-xs mb-6 uppercase tracking-widest">
@@ -690,8 +696,8 @@ const AdminPortal = () => {
 
 const SectionHeader = ({ label, sublabel, action }) => (
     <div className="flex items-center gap-3 mb-5">
-        <span className="text-zinc-500 text-xs uppercase tracking-widest font-bold shrink-0">{label}</span>
-        {sublabel && <span className="text-zinc-400 text-[10px] shrink-0">{sublabel}</span>}
+        <span className="text-zinc-700 text-xs uppercase tracking-widest font-bold shrink-0">{label}</span>
+        {sublabel && <span className="text-zinc-600 text-[10px] shrink-0">{sublabel}</span>}
         <div className="flex-1 h-px bg-zinc-200" />
         {action}
     </div>
