@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 
 const $projectRoot = 'public/projects/';
 const metadataFile = 'metadata.json';
@@ -27,6 +27,8 @@ const AdminPortal = () => {
     const [customTagInput, setCustomTagInput] = useState('');
     const [projectList, setProjectList]       = useState([]);
     const [projectTitles, setProjectTitles]   = useState({});
+    const [touchedProjects, setTouchedProjects] = useState(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState({});
     const [drafts, setDrafts]                 = useState([]);
     const [images, setImages]                 = useState([]);
     const [altTexts, setAltTexts]             = useState({});
@@ -90,10 +92,23 @@ const AdminPortal = () => {
             });
             const data = await res.json();
             if (Array.isArray(data)) {
-                setProjectList(data.filter(i => i.type === 'dir').map(i => i.name));
+                const slugs = data.filter(i => i.type === 'dir').map(i => i.name);
+                setProjectList(slugs);
                 setMsg('Ready', 'success');
+                checkTouched(slugs);
             }
         } catch (err) { setMsg(`Could not load projects: ${err.message}`, 'error'); }
+    };
+
+    const checkTouched = async (slugs) => {
+        const results = await Promise.all(slugs.map(async (slug) => {
+            const res = await fetch(
+                `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${$projectRoot}${slug}/${metadataFile}?ref=main`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return res.ok ? slug : null;
+        }));
+        setTouchedProjects(new Set(results.filter(Boolean)));
     };
 
     const loadProject = async (folderName) => {
@@ -425,7 +440,7 @@ const AdminPortal = () => {
                 {/* ── PROJECTS TAB ── */}
                 <AnimatePresence mode="wait">
                 {activeTab === 'projects' && (
-                    <motion.div key="projects" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                    <motion.div key="projects" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                         {currentBranch && (
                             <button
                                 onClick={() => {
@@ -433,37 +448,64 @@ const AdminPortal = () => {
                                     setProjectName(slug); setTitle(''); setImages([]); setClient(''); setDescription(''); setTags([]); setAltTexts({});
                                     setActiveTab('editor');
                                 }}
-                                className="w-full border border-dashed border-zinc-300 hover:border-weld-red py-4 text-zinc-400 hover:text-weld-red text-sm font-bold uppercase tracking-widest transition-colors"
+                                className="w-full border border-dashed border-zinc-300 hover:border-weld-red py-4 text-zinc-600 hover:text-weld-red text-sm font-bold uppercase tracking-widest transition-colors"
                             >
                                 + Add New Project
                             </button>
                         )}
 
-                        {[...projectList]
-                            .sort((a, b) => (drafts.includes(a) ? -1 : drafts.includes(b) ? 1 : b.localeCompare(a)))
-                            .map(name => (
-                                <motion.button
-                                    key={name}
-                                    onClick={() => loadProject(name)}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={`w-full text-left p-4 border transition-colors flex items-center justify-between gap-3 ${
-                                        projectName === name && activeTab === 'editor'
-                                            ? 'border-weld-red bg-weld-red/5'
-                                            : 'border-zinc-200 bg-white hover:border-zinc-400 shadow-sm'
-                                    }`}
-                                >
-                                    <div className="min-w-0">
-                                        <p className="text-zinc-900 font-bold text-sm truncate">{displayName(name)}</p>
-                                        {drafts.includes(name) && (
-                                            <p className="text-amber-500 text-[10px] uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                                                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />Unsaved changes
-                                            </p>
-                                        )}
+                        {/* Sub-tabs: Touched / Needs Info */}
+                        {(() => {
+                            const touched    = projectList.filter(n => touchedProjects.has(n));
+                            const untouched  = projectList.filter(n => !touchedProjects.has(n));
+                            const groups = [
+                                { key: 'touched',   label: 'Info Added',  list: touched,   empty: 'No projects updated yet.' },
+                                { key: 'untouched', label: 'Needs Info',  list: untouched, empty: 'All projects have been updated!' },
+                            ];
+                            return groups.map(({ key, label, list, empty }) => (
+                                <div key={key}>
+                                    <button
+                                        onClick={() => setCollapsedGroups(prev => ({ ...prev, [key]: !prev[key] }))}
+                                        className="w-full flex items-center gap-3 mb-2 group"
+                                    >
+                                        <span className="text-zinc-700 text-xs font-bold uppercase tracking-widest">{label}</span>
+                                        <span className="text-zinc-400 text-xs">{list.length}</span>
+                                        <div className="flex-1 h-px bg-zinc-200" />
+                                        <ChevronDown size={14} className={`text-zinc-400 group-hover:text-zinc-600 transition-transform shrink-0 ${collapsedGroups[key] ? '-rotate-90' : ''}`} />
+                                    </button>
+                                    {!collapsedGroups[key] && list.length === 0 && (
+                                        <p className="text-zinc-400 text-xs py-3 pl-1">{empty}</p>
+                                    )}
+                                    <div className="space-y-2">
+                                        {!collapsedGroups[key] && [...list]
+                                            .sort((a, b) => (drafts.includes(a) ? -1 : drafts.includes(b) ? 1 : b.localeCompare(a)))
+                                            .map(name => (
+                                                <motion.button
+                                                    key={name}
+                                                    onClick={() => loadProject(name)}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    className={`w-full text-left p-4 border transition-colors flex items-center justify-between gap-3 ${
+                                                        projectName === name && activeTab === 'editor'
+                                                            ? 'border-weld-red bg-weld-red/5'
+                                                            : 'border-zinc-200 bg-white hover:border-zinc-400 shadow-sm'
+                                                    }`}
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="text-zinc-900 font-bold text-sm truncate">{displayName(name)}</p>
+                                                        {drafts.includes(name) && (
+                                                            <p className="text-amber-500 text-[10px] uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                                                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />Unsaved changes
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-zinc-500 text-xs shrink-0">Edit →</span>
+                                                </motion.button>
+                                            ))
+                                        }
                                     </div>
-                                    <span className="text-zinc-400 text-xs shrink-0">Edit →</span>
-                                </motion.button>
-                            ))
-                        }
+                                </div>
+                            ));
+                        })()}
                     </motion.div>
                 )}
 
