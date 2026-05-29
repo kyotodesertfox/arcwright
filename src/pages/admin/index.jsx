@@ -192,6 +192,20 @@ const AdminPortal = () => {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: `Update: ${folderName}`, content, branch: currentBranch, sha: existingData.sha || null })
             });
+
+            // Keep index.json in sync with all known project slugs
+            const indexPath    = `${$projectRoot}index.json`;
+            const indexContent = btoa(JSON.stringify(projectList, null, 2));
+            const indexExisting = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${indexPath}?ref=${currentBranch}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const indexData = indexExisting.ok ? await indexExisting.json() : {};
+            await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${indexPath}`, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `Update index`, content: indexContent, branch: currentBranch, sha: indexData.sha || null })
+            });
+
             if (projectData.title) setProjectTitles(prev => ({ ...prev, [folderName]: projectData.title }));
             setMsg('Changes saved!', 'success');
             if (!drafts.includes(folderName)) setDrafts(prev => [...prev, folderName]);
