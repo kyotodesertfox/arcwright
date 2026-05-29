@@ -298,13 +298,20 @@ const AdminPortal = () => {
 
     const displayName = (slug) => projectTitles[slug] || formatSlug(slug);
 
-    const saveProject = () => commitToBranch(projectName, {
-        title: title.trim() || projectName,
-        client,
-        description,
-        tags,
-        images: altTexts,
-    });
+    const saveProject = () => {
+        const allImages = {};
+        images.forEach(img => {
+            const key = img.name.replace(/\.webp$/i, '');
+            allImages[key] = altTexts[key] || '';
+        });
+        commitToBranch(projectName, {
+            title: title.trim() || projectName,
+            client,
+            description,
+            tags,
+            images: allImages,
+        });
+    };
 
     // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
 
