@@ -24,12 +24,19 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="mt-10">
+                    <div className="mt-10 inline-flex flex-col items-center gap-4">
                         <Link to="/contact">
                             <button className="bg-weld-red hover:bg-red-700 text-white font-bold py-4 px-8 uppercase tracking-widest transition-all">
                                 Discuss Your Project
                             </button>
                         </Link>
+                        <a
+                            href="tel:904-914-0648"
+                            className="flex items-center gap-3 text-zinc-800 hover:text-weld-red transition-colors font-mono font-bold text-xl"
+                        >
+                            <span className="w-2 h-2 bg-weld-red rounded-full animate-pulse flex-shrink-0" />
+                            904-914-0648
+                        </a>
                     </div>
                 </div>
 

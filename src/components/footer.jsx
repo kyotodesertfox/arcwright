@@ -68,7 +68,7 @@ const Footer = () => {
 
             {/* Bottom Bar */}
             <div className="border-t border-zinc-900 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-6">
                     <p className="text-zinc-400 text-xs uppercase tracking-[0.2em]">
                         © {new Date().getFullYear()} ArcWright Welding | Jacksonville, FL
                     </p>
