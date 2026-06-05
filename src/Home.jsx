@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 const Home = () => {
     const [logoLoaded, setLogoLoaded] = useState(false);
@@ -24,17 +23,13 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="mt-10 inline-flex flex-col items-center gap-4">
-                        <Link to="/contact">
-                            <button className="bg-weld-red hover:bg-red-700 text-white font-bold py-4 px-8 uppercase tracking-widest transition-all">
-                                Discuss Your Project
-                            </button>
-                        </Link>
+                    <div className="mt-10 inline-block bg-orange-500/80 border border-orange-400 shadow-lg rounded-xl px-8 py-6">
+                        <p className="text-xs uppercase tracking-[0.2em] font-bold text-orange-900 mb-3">Free Estimate</p>
                         <a
                             href="tel:904-914-0648"
-                            className="flex items-center gap-3 text-zinc-800 hover:text-weld-red transition-colors font-mono font-bold text-xl"
+                            className="flex items-center gap-4 text-white hover:text-zinc-900 transition-colors font-mono font-bold text-3xl drop-shadow-md"
                         >
-                            <span className="w-2 h-2 bg-weld-red rounded-full animate-pulse flex-shrink-0" />
+                            <span className="w-3 h-3 bg-white rounded-full animate-pulse flex-shrink-0" />
                             904-914-0648
                         </a>
                     </div>
