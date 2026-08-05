@@ -10,7 +10,12 @@ public/projects/ToSort
 !public/projects/**/*.json
 
 # --- Environment Secrets ---
+# .env alone does NOT match .env.local / .env.development / etc.
+# Until 2026-08-02 those were only saved incidentally by the *.local rule
+# further down, which exists for Vite build artifacts, not secrets.
 .env
+.env.*
+!.env.example
 
 # Logs
 logs

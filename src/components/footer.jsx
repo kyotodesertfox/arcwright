@@ -72,9 +72,9 @@ const Footer = () => {
                     <p className="text-zinc-400 text-xs uppercase tracking-[0.2em]">
                         © {new Date().getFullYear()} ArcWright Welding | Jacksonville, FL
                     </p>
-                    <p className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
-                        Crafted by{' '}
-                        <a href="mailto:zenko18@gmail.com?subject=ArcWright%20Website" className="hover:text-white transition-colors">
+                    <p className="text-xs uppercase tracking-widest font-bold">
+                        <span className="text-weld-red">Website Crafted by</span>{' '}
+                        <a href="mailto:zenko18@gmail.com?subject=ArcWright%20Website" className="text-zinc-300 hover:text-white transition-colors">
                             Justin
                         </a>
                     </p>

@@ -4,6 +4,7 @@ import Layout from './components/layout';
 import Home from './Home';
 import Services from './pages/services';
 import Portfolio from './pages/portfolio';
+import Awards from './pages/awards';
 import Contact from './pages/contact';
 import NotFound from './pages/NotFound';
 import AdminPortal from './pages/admin/index';
@@ -27,6 +28,7 @@ function App() {
     <Route path="/" element={<Home />} />
     <Route path="/services" element={<Services />} />
     <Route path="/portfolio" element={<Portfolio />} />
+    <Route path="/awards" element={<Awards />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/admin" element={<AdminPortal />} />
     <Route path="*" element={<NotFound />} />
