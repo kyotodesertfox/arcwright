@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { Award, Sparkles } from 'lucide-react';
 
 const CONFETTI_COUNT = 36;
-const CONFETTI_COLORS = ['bg-weld-red', 'bg-weld-silver', 'bg-white', 'bg-zinc-300'];
+const CONFETTI_COLORS = ['bg-weld-red', 'bg-weld-silver', 'bg-zinc-900', 'bg-zinc-600'];
 
 // Generated once at module load, not during render - keeps the component pure.
 const CONFETTI_PIECES = Array.from({ length: CONFETTI_COUNT }, (_, i) => ({
@@ -65,19 +65,15 @@ const Awards = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
-                    className="relative bg-zinc-950 overflow-hidden"
+                    className="relative bg-zinc-50 border-l-8 border-weld-red shadow-xl overflow-hidden"
                 >
                     <Confetti />
-
-                    {/* Pulsing glow border */}
-                    <div className="absolute inset-0 border-2 border-weld-red animate-pulse pointer-events-none" />
-                    <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-red-900 via-weld-red to-red-900" />
 
                     <div className="relative p-8 md:p-14 flex flex-col md:flex-row items-center gap-10">
 
                         {/* Award image */}
                         <div className="flex-shrink-0 relative">
-                            <div className="w-48 md:w-56 aspect-[1636/2048] border-2 border-weld-silver/40 relative overflow-hidden">
+                            <div className="w-48 md:w-56 aspect-[1636/2048] border-2 border-weld-silver/40 shadow-lg relative overflow-hidden">
                                 <img
                                     src="/award-businessrate-2026.png"
                                     alt="BusinessRate Ranked #2 Welder in Jacksonville - July 2026 Award Winner - ArcWright Welding"
@@ -104,43 +100,23 @@ const Awards = () => {
                                     BusinessRate · July 2026
                                 </p>
                             </div>
-                            <h3 className="text-4xl md:text-5xl font-black uppercase italic text-white leading-tight mb-4">
+                            <h3 className="text-4xl md:text-5xl font-black uppercase italic text-zinc-900 leading-tight mb-4">
                                 Ranked <span className="text-weld-red">#2</span> Welder
                                 <br className="hidden md:block" /> in Jacksonville
                             </h3>
-                            <p className="text-zinc-400 text-base leading-relaxed max-w-xl">
+                            <p className="text-zinc-600 text-base leading-relaxed max-w-xl">
                                 Officially recognized as the #2 ranked welder in Jacksonville for 2026,
                                 based on verified data. A result of consistency, a nonstop drive, and a
-                                sharp focus on the work — not chasing the outcome, letting it show up on its own.
+                                sharp focus on customer satisfaction.
                             </p>
                             <div className="flex items-center justify-center md:justify-start gap-2 mt-6">
                                 <Award className="text-weld-silver" size={16} />
-                                <span className="text-zinc-500 text-xs uppercase tracking-widest font-bold">
+                                <span className="text-zinc-600 text-xs uppercase tracking-widest font-bold">
                                     Verified Award Winner
                                 </span>
                             </div>
                         </div>
                     </div>
-                </motion.div>
-
-                {/* CTA */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.15, duration: 0.5 }}
-                    className="mt-12 text-center"
-                >
-                    <p className="text-zinc-500 uppercase tracking-widest text-sm mb-4">
-                        Ranked #2 for a reason — let's talk about your project.
-                    </p>
-                    <a
-                        href="tel:904-914-0648"
-                        className="inline-flex items-center gap-3 bg-weld-red text-white font-mono font-bold text-xl px-8 py-4 hover:bg-red-700 transition-colors"
-                    >
-                        <span className="w-2 h-2 bg-white rounded-full animate-pulse flex-shrink-0" />
-                        904-914-0648
-                    </a>
                 </motion.div>
             </div>
         </section>

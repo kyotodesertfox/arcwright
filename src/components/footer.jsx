@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
 const Footer = () => {
+    const [sheenKey, setSheenKey] = useState(0);
+
     return (
         <footer className="bg-zinc-950 border-t-4 border-weld-red">
 
@@ -68,13 +71,18 @@ const Footer = () => {
             </div>
 
             {/* Bottom Bar */}
-            <div className="relative overflow-hidden bg-zinc-900 border-t border-white/5 px-6 py-4">
-                {/* Metallic sheen sweep */}
+            <div
+                className="relative overflow-hidden bg-zinc-900 border-t border-white/5 px-6 py-4"
+                onMouseEnter={() => setSheenKey((k) => k + 1)}
+                onClick={() => setSheenKey((k) => k + 1)}
+            >
+                {/* Metallic sheen sweep - loops automatically, also restarts fresh on hover */}
                 <motion.div
+                    key={sheenKey}
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent -skew-x-12 pointer-events-none"
                     initial={{ x: '-150%' }}
                     animate={{ x: '150%' }}
-                    transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 5, ease: 'easeInOut' }}
+                    transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 5, ease: 'easeOut' }}
                 />
                 <div className="relative max-w-7xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-6">
                     <p className="text-zinc-400 text-xs uppercase tracking-[0.2em]">
@@ -83,7 +91,7 @@ const Footer = () => {
                     <p className="text-xs uppercase tracking-widest font-bold">
                         <span className="text-weld-red">Website Crafted by</span>{' '}
                         <a href="mailto:zenko18@gmail.com?subject=ArcWright%20Website" className="text-zinc-300 hover:text-white transition-colors">
-                            Justin
+                            Justin White
                         </a>
                     </p>
                 </div>

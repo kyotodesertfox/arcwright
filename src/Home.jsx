@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
     const [logoLoaded, setLogoLoaded] = useState(false);
@@ -23,15 +24,29 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="mt-10 inline-block bg-orange-500/80 border border-orange-400 shadow-lg rounded-xl px-8 py-6">
-                        <p className="text-xs uppercase tracking-[0.2em] font-bold text-orange-900 mb-3">Free Estimate</p>
-                        <a
-                            href="tel:904-914-0648"
-                            className="flex items-center gap-4 text-white hover:text-zinc-900 transition-colors font-mono font-bold text-3xl drop-shadow-md"
+                    <div className="mt-10 flex items-center gap-5">
+                        <div className="inline-block bg-orange-500/80 border border-orange-400 shadow-lg rounded-xl px-8 py-6">
+                            <p className="text-xs uppercase tracking-[0.2em] font-bold text-orange-900 mb-3">Free Estimate</p>
+                            <a
+                                href="tel:904-914-0648"
+                                className="flex items-center gap-4 text-white hover:text-zinc-900 transition-colors font-mono font-bold text-3xl drop-shadow-md"
+                            >
+                                904-914-0648
+                            </a>
+                        </div>
+
+                        {/* Award badge - fixed height matches the CTA box's rendered height (112px: 48px padding + 64px content); width follows its own aspect ratio */}
+                        <Link
+                            to="/awards"
+                            className="flex-shrink-0 h-28 shadow-xl hover:scale-105 transition-transform duration-300"
+                            aria-label="Ranked #2 Welder in Jacksonville - view award"
                         >
-                            <span className="w-3 h-3 bg-white rounded-full animate-pulse flex-shrink-0" />
-                            904-914-0648
-                        </a>
+                            <img
+                                src="/award-businessrate-2026.png"
+                                alt="Ranked #2 Welder in Jacksonville - BusinessRate July 2026"
+                                className="h-full w-auto object-contain rounded-sm"
+                            />
+                        </Link>
                     </div>
                 </div>
 
