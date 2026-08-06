@@ -23,7 +23,7 @@ const Navbar = () => {
 
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-3 text-2xl font-black italic tracking-tighter text-white group py-2">
-                    <span className="w-1.5 h-8 bg-weld-red inline-block group-hover:h-10 transition-all duration-300" />
+                    <span className="w-1.5 h-8 bg-weld-red inline-block group-hover:scale-y-125 transition-transform duration-300" />
                     <span>ARC<span className="text-weld-red">WRIGHT</span></span>
                     <span className="text-orange-500 text-base font-medium not-italic tracking-normal">WELDING</span>
                 </Link>
