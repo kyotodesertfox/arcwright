@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 
 const Footer = () => {
     return (
@@ -67,8 +68,15 @@ const Footer = () => {
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-zinc-900 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-6">
+            <div className="relative overflow-hidden bg-zinc-900 border-t border-white/5 px-6 py-4">
+                {/* Metallic sheen sweep */}
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent -skew-x-12 pointer-events-none"
+                    initial={{ x: '-150%' }}
+                    animate={{ x: '150%' }}
+                    transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 5, ease: 'easeInOut' }}
+                />
+                <div className="relative max-w-7xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-6">
                     <p className="text-zinc-400 text-xs uppercase tracking-[0.2em]">
                         © {new Date().getFullYear()} ArcWright Welding | Jacksonville, FL
                     </p>

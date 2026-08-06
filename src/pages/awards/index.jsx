@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Award, Sparkles, Trophy } from 'lucide-react';
+import { Award, Sparkles } from 'lucide-react';
 
 const CONFETTI_COUNT = 36;
 const CONFETTI_COLORS = ['bg-weld-red', 'bg-weld-silver', 'bg-white', 'bg-zinc-300'];
@@ -19,7 +19,7 @@ const Confetti = () => {
     const pieces = CONFETTI_PIECES;
 
     return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
             {pieces.map((p) => (
                 <motion.span
                     key={p.id}
@@ -75,20 +75,21 @@ const Awards = () => {
 
                     <div className="relative p-8 md:p-14 flex flex-col md:flex-row items-center gap-10">
 
-                        {/* Placeholder award image */}
+                        {/* Award image */}
                         <div className="flex-shrink-0 relative">
-                            <div className="w-56 h-56 md:w-64 md:h-64 bg-zinc-900 border-2 border-weld-silver/40 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
-                                {/* Shine sweep */}
+                            <div className="w-48 md:w-56 aspect-[1636/2048] border-2 border-weld-silver/40 relative overflow-hidden">
+                                <img
+                                    src="/award-businessrate-2026.png"
+                                    alt="BusinessRate Ranked #2 Welder in Jacksonville - July 2026 Award Winner - ArcWright Welding"
+                                    className="w-full h-full object-cover"
+                                />
+                                {/* Shine sweep - diagonal, top-left to bottom-right */}
                                 <motion.div
-                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
-                                    initial={{ x: '-150%' }}
-                                    animate={{ x: '150%' }}
+                                    className="absolute -inset-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent rotate-45"
+                                    initial={{ x: '-60%', y: '-60%' }}
+                                    animate={{ x: '60%', y: '60%' }}
                                     transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 1.8, ease: 'easeInOut' }}
                                 />
-                                <Trophy className="text-weld-red" size={64} strokeWidth={1.5} />
-                                <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-bold text-center px-6">
-                                    Placeholder — official award photo pending
-                                </p>
                             </div>
                             <span className="absolute -top-3 -right-3 bg-weld-red text-white text-xs font-black uppercase tracking-widest px-3 py-1.5 rotate-6 shadow-lg">
                                 New
