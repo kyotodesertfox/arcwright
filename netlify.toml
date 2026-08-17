@@ -1,5 +1,5 @@
 [[redirects]]
   from = "/*"
-  to = "https://jax-web-services.netlify.app"
-  status = 301
-  force = true
+  to = "/index.html"
+  status = 200
+  functions = "netlify/functions"
